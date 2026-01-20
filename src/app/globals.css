@@ -1,0 +1,47 @@
+@import "tailwindcss";
+
+:root {
+  --background: #020410; /* Deep charcoal/midnight black */
+  --foreground: #f0f0f0;
+  
+  /* Neon Accents */
+  --neon-cyan: #00f0ff;
+  --neon-green: #0aff60;
+  --neon-violet: #9d00ff;
+  --glass-border: rgba(255, 255, 255, 0.1);
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-sans), Arial, Helvetica, sans-serif;
+  overflow-x: hidden;
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+}
+::-webkit-scrollbar-track {
+  background: #020410;
+}
+::-webkit-scrollbar-thumb {
+  background: #333;
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #555;
+}
+
+/* (Intentionally left simple: plain background, no texture or animated orbs) */
