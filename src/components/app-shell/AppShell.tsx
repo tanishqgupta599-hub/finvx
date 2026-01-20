@@ -37,7 +37,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
 
         {/* Footer */}
         <div className="border-t border-white/5 bg-black/40 px-4 py-3 text-center text-[10px] uppercase tracking-wider text-zinc-600 backdrop-blur-sm md:px-6">
-          Finverse AI • Private Financial Intelligence
+          Finvx AI • Private Financial Intelligence
         </div>
 
         {/* Mobile Navigation */}

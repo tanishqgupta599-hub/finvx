@@ -14,7 +14,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Finverse - Your Financial Universe",
+  title: "Finvx - Your Financial Universe",
   description: "A comprehensive fintech dashboard for managing your finances.",
 };
 

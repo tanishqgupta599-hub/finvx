@@ -5,7 +5,7 @@ import { useAuthStore } from "@/state/auth-store";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect } from "react";
 
-export default function FinverseLayout({ children }: { children: React.ReactNode }) {
+export default function FinvxLayout({ children }: { children: React.ReactNode }) {
   const user = useAuthStore((s) => s.user);
   const router = useRouter();
   const pathname = usePathname();

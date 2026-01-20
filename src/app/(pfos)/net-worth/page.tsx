@@ -162,7 +162,7 @@ export default function NetWorth() {
 
   const snapshotText = `Net worth: ₹${netWorth.toLocaleString("en-IN")} (Assets ₹${totalAssets.toLocaleString(
     "en-IN",
-  )}, Debt ₹${(totalDebt + totalLiabilities).toLocaleString("en-IN")}) – created with Finverse.`;
+  )}, Debt ₹${(totalDebt + totalLiabilities).toLocaleString("en-IN")}) – created with Finvx.`;
 
   const copySnapshot = async () => {
     try {

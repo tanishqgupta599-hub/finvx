@@ -28,27 +28,27 @@ export default function TermsPage() {
 
         <div className="prose prose-invert prose-zinc max-w-none">
           <p className="lead text-lg text-zinc-300">
-            By accessing or using Finverse, you agree to be bound by these Terms of Service. If you do not agree to these terms, please do not use our services.
+            By accessing or using Finvx, you agree to be bound by these Terms of Service. If you do not agree to these terms, please do not use our services.
           </p>
 
           <h2 className="text-xl font-bold text-white mt-8 mb-4">1. Acceptance of Terms</h2>
           <p>
-            Finverse provides financial tracking and visualization software. By creating a local workspace, you acknowledge that the software is provided "as is" and "as available".
+            Finvx provides financial tracking and visualization software. By creating a local workspace, you acknowledge that the software is provided "as is" and "as available".
           </p>
 
           <h2 className="text-xl font-bold text-white mt-8 mb-4">2. User Responsibilities</h2>
           <p>
-            You are responsible for maintaining the confidentiality of your device and any access methods (like biometrics) used to secure the Finverse app. Since data is stored locally, you are responsible for your own data backups.
+            You are responsible for maintaining the confidentiality of your device and any access methods (like biometrics) used to secure the Finvx app. Since data is stored locally, you are responsible for your own data backups.
           </p>
 
           <h2 className="text-xl font-bold text-white mt-8 mb-4">3. Disclaimer of Warranties</h2>
           <p>
-            Finverse is a tool for informational purposes only. It does not provide financial advice. We are not responsible for any financial decisions made based on the data presented in the application.
+            Finvx is a tool for informational purposes only. It does not provide financial advice. We are not responsible for any financial decisions made based on the data presented in the application.
           </p>
 
           <h2 className="text-xl font-bold text-white mt-8 mb-4">4. Limitation of Liability</h2>
           <p>
-            To the fullest extent permitted by law, Finverse shall not be liable for any indirect, incidental, special, consequential, or punitive damages, or any loss of profits or revenues.
+            To the fullest extent permitted by law, Finvx shall not be liable for any indirect, incidental, special, consequential, or punitive damages, or any loss of profits or revenues.
           </p>
 
           <h2 className="text-xl font-bold text-white mt-8 mb-4">5. Changes to Terms</h2>

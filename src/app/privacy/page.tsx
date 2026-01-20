@@ -28,7 +28,7 @@ export default function PrivacyPage() {
 
         <div className="prose prose-invert prose-zinc max-w-none">
           <p className="lead text-lg text-zinc-300">
-            At Finverse, privacy is not an afterthought; it is our core product. We have architected our application to ensure that your financial data remains yours and yours alone.
+            At Finvx, privacy is not an afterthought; it is our core product. We have architected our application to ensure that your financial data remains yours and yours alone.
           </p>
 
           <h2 className="text-xl font-bold text-white mt-8 mb-4">1. Data Collection & Storage</h2>
@@ -57,7 +57,7 @@ export default function PrivacyPage() {
 
           <h2 className="text-xl font-bold text-white mt-8 mb-4">4. Contact Us</h2>
           <p>
-            If you have questions about our privacy model, please reach out to us at privacy@finverse.app (stub).
+            If you have questions about our privacy model, please reach out to us at privacy@finvx.app (stub).
           </p>
         </div>
       </div>

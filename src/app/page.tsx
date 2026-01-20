@@ -30,7 +30,7 @@ export default function Landing() {
             <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-cyan-500 to-blue-600 shadow-lg shadow-cyan-500/20">
               <Zap className="h-6 w-6 text-white" fill="currentColor" />
             </div>
-            <span className="text-xl font-bold tracking-tight text-white">Finverse</span>
+            <span className="text-xl font-bold tracking-tight text-white">Finvx</span>
           </motion.div>
           
           <motion.nav
@@ -454,7 +454,7 @@ export default function Landing() {
                    Your data is <span className="text-cyan-400">yours alone.</span>
                  </h2>
                  <p className="text-lg text-zinc-400 max-w-2xl mx-auto mb-12">
-                   We built Finverse on a local-first architecture. Your financial data is encrypted on your device and only syncs when you say so. We couldn't sell your data even if we wanted to.
+                   We built Finvx on a local-first architecture. Your financial data is encrypted on your device and only syncs when you say so. We couldn't sell your data even if we wanted to.
                  </p>
 
                  <div className="grid grid-cols-1 md:grid-cols-3 gap-8 text-left">
@@ -646,7 +646,7 @@ export default function Landing() {
         </main>
 
         <footer className="mt-20 border-t border-white/10 py-12 text-center text-sm text-zinc-500">
-          <p>&copy; {new Date().getFullYear()} Finverse. All rights reserved.</p>
+          <p>&copy; {new Date().getFullYear()} Finvx. All rights reserved.</p>
         </footer>
       </div>
     </div>

@@ -16,7 +16,7 @@ export function TopActionsList() {
     return (
       <EmptyState
         title="You are all caught up"
-        description="No suggested actions right now. As your data grows, Finverse will surface gentle next steps here."
+        description="No suggested actions right now. As your data grows, Finvx will surface gentle next steps here."
       />
     );
   }

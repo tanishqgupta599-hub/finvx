@@ -108,7 +108,7 @@ export function demoActions(): ActionItem[] {
       steps: [
         { id: "s1", label: "Confirm fixed monthly costs", done: false },
         { id: "s2", label: "Schedule an automatic monthly top-up", done: false },
-        { id: "s3", label: "Bookmark emergency fund goal in Finverse", done: false },
+        { id: "s3", label: "Bookmark emergency fund goal in Finvx", done: false },
       ],
       whyThis: "An emergency fund keeps bad surprises from turning into debt spirals.",
       consequence: "Without reserves, even small shocks may push you toward high-interest borrowing.",

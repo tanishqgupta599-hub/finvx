@@ -72,7 +72,7 @@ export function AddFriendModal() {
               className="border-zinc-700 bg-zinc-900"
             />
             <p className="text-xs text-zinc-500">
-              We'll send them an invite to join Finverse.
+              We'll send them an invite to join Finvx.
             </p>
           </div>
 

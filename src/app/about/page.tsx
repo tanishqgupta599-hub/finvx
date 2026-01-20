@@ -16,14 +16,14 @@ export default function AboutPage() {
 
         <header className="mb-16">
           <div className="inline-flex items-center gap-2 rounded-full bg-cyan-500/10 px-3 py-1 text-xs font-medium text-cyan-400 mb-6">
-            About Finverse
+            About Finvx
           </div>
           <h1 className="text-4xl font-bold tracking-tight md:text-5xl mb-6">
             Reclaiming financial privacy.
           </h1>
           <p className="text-xl text-zinc-400 leading-relaxed">
             We believe your financial life belongs to you, not to ad networks or data brokers. 
-            Finverse was built to provide clarity without compromise.
+            Finvx was built to provide clarity without compromise.
           </p>
         </header>
 
@@ -66,7 +66,7 @@ export default function AboutPage() {
             href="/auth?mode=signup"
             className="inline-flex items-center justify-center rounded-full bg-white px-6 py-2.5 text-sm font-semibold text-black hover:bg-zinc-200 transition-colors"
           >
-            Start using Finverse
+            Start using Finvx
           </Link>
         </section>
       </div>

@@ -114,7 +114,7 @@ export function TopBar() {
   return (
     <header className="sticky top-0 z-40 border-b border-white/5 bg-zinc-950/80 backdrop-blur-md supports-[backdrop-filter]:bg-zinc-950/60">
       <div className="mx-auto flex h-14 w-full max-w-7xl items-center gap-3 px-4 md:px-6">
-        <div className="text-lg font-bold tracking-tight bg-gradient-to-br from-cyan-400 to-purple-600 bg-clip-text text-transparent">Finverse</div>
+        <div className="text-lg font-bold tracking-tight bg-gradient-to-br from-cyan-400 to-purple-600 bg-clip-text text-transparent">Finvx</div>
         <div className="ml-auto flex items-center gap-2">
           {/* Mobile Search Trigger */}
           <button

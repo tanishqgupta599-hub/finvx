@@ -64,7 +64,7 @@ export const useAuthStore = create<AuthState & AuthActions>()(
       logout: () => set({ user: null }),
     }),
     {
-      name: "finverse-auth",
+      name: "finvx-auth",
     },
   ),
 );

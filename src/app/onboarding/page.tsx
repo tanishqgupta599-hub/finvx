@@ -448,7 +448,7 @@ export default function Onboarding() {
                   </div>
                 </div>
                 <div className="text-xs text-zinc-500">
-                  Finverse does not call anyone. This is just a reminder anchor for you.
+                  Finvx does not call anyone. This is just a reminder anchor for you.
                 </div>
               </div>
             )}
@@ -458,7 +458,7 @@ export default function Onboarding() {
                 <div className="rounded-2xl bg-zinc-900 p-3 text-sm">
                   <div className="font-medium">Use demo data</div>
                   <div className="mt-1 text-xs text-zinc-500">
-                    Safe, high-quality dummy data lets you explore Finverse without connecting real
+                    Safe, high-quality dummy data lets you explore Finvx without connecting real
                     accounts. You can always clear it later from Settings.
                   </div>
                   <div className="mt-3 flex items-center justify-between">

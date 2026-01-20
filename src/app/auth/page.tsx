@@ -155,7 +155,7 @@ function AuthContent() {
                 </div>
                 <div className="space-y-0.5">
                   <div className="text-[10px] uppercase tracking-[0.22em] text-cyan-200">
-                    Finverse
+                    Finvx
                   </div>
                   <div className="text-[11px] text-zinc-400">Command center</div>
                 </div>
@@ -244,7 +244,7 @@ function AuthContent() {
                   </div>
                   <div className="space-y-0.5">
                     <div className="text-[10px] uppercase tracking-[0.22em] text-zinc-400">
-                      Finverse
+                      Finvx
                     </div>
                     <div className="text-xs text-zinc-300">Access panel</div>
                   </div>
@@ -340,7 +340,7 @@ function AuthContent() {
                     className="group relative mt-2 w-full justify-center overflow-hidden bg-gradient-to-r from-cyan-400 via-emerald-400 to-fuchsia-400 text-sm font-semibold text-slate-950 shadow-[0_0_30px_rgba(34,211,238,0.55)] transition-transform hover:scale-[1.02]"
                   >
                     <span className="relative z-10 whitespace-nowrap">
-                      {mode === "signup" ? "Enter Finverse" : "Continue"}
+                      {mode === "signup" ? "Enter Finvx" : "Continue"}
                     </span>
                     <span className="pointer-events-none absolute inset-0 translate-x-[-120%] bg-gradient-to-r from-transparent via-white/40 to-transparent opacity-80 group-hover:animate-[shimmer_1.2s_ease-in-out]" />
                   </Button>
