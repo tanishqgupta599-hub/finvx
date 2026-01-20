@@ -21,7 +21,7 @@ export default function CircleDetailsPage() {
         <h2 className="text-xl font-bold text-white">Circle Not Found</h2>
         <p className="text-zinc-400">The circle you are looking for does not exist or you don't have access.</p>
         <Link href="/circles">
-          <Button variant="outline">Go Back</Button>
+          <Button variant="secondary">Go Back</Button>
         </Link>
       </div>
     );

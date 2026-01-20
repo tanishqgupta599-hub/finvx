@@ -1,3 +1,4 @@
+import { ExpenseCircle } from "@/domain/circles";
 
 export function demoCircles(): ExpenseCircle[] {
   return [

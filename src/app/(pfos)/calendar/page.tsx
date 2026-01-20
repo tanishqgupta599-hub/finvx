@@ -200,7 +200,7 @@ export default function CalendarPage() {
                 </div>
               </div>
               <div className="flex justify-end gap-3">
-                <Button variant="outline" onClick={() => setIsAddOpen(false)}>Cancel</Button>
+                <Button variant="secondary" onClick={() => setIsAddOpen(false)}>Cancel</Button>
                 <Button onClick={handleSaveEvent} className="bg-cyan-500 text-black hover:bg-cyan-400">Save Event</Button>
               </div>
             </DialogContent>

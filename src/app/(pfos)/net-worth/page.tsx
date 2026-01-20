@@ -242,7 +242,7 @@ export default function NetWorth() {
                   <AreaChart data={netWorthTrendData}>
                     <XAxis dataKey="label" hide />
                     <Tooltip
-                      formatter={(value: unknown) =>
+                      formatter={(value: any) =>
                         typeof value === "number"
                           ? `₹${value.toLocaleString("en-IN")}`
                           : value

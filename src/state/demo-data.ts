@@ -219,8 +219,24 @@ export function demoCircles(): ExpenseCircle[] {
 
 export function demoFriends(): Friend[] {
   return [
-    { id: "f1", name: "Riya", email: "riya@example.com", avatarUrl: "/avatars/riya.jpg", status: "active" },
-    { id: "f2", name: "Arjun", email: "arjun@example.com", avatarUrl: "/avatars/arjun.jpg", status: "invite_sent" },
+    { 
+      id: "f1", 
+      name: "Riya", 
+      email: "riya@example.com", 
+      avatar: "/avatars/riya.jpg", 
+      status: "active",
+      joinedAt: new Date().toISOString(),
+      associatedCircleIds: []
+    },
+    { 
+      id: "f2", 
+      name: "Arjun", 
+      email: "arjun@example.com", 
+      avatar: "/avatars/arjun.jpg", 
+      status: "invited",
+      joinedAt: new Date().toISOString(),
+      associatedCircleIds: []
+    },
   ];
 }
 

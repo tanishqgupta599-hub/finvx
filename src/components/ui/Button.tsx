@@ -2,7 +2,7 @@ import { forwardRef } from "react";
 import { twMerge } from "tailwind-merge";
 
 type Variant = "primary" | "secondary" | "ghost";
-type Size = "sm" | "md" | "lg";
+type Size = "sm" | "md" | "lg" | "icon";
 
 export const Button = forwardRef<
   HTMLButtonElement,
@@ -14,6 +14,7 @@ export const Button = forwardRef<
       sm: "h-8 px-3 text-sm",
       md: "h-10 px-4 text-sm",
       lg: "h-12 px-6 text-base",
+      icon: "h-10 w-10 p-2",
     }[size];
     const variants = {
       primary: "bg-cyan-500 text-black hover:bg-cyan-400 shadow-[0_0_10px_rgba(6,182,212,0.4)] border border-cyan-400/50",

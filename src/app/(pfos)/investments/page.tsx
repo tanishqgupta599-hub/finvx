@@ -153,7 +153,7 @@ export default function InvestmentsPage() {
                     <Tooltip 
                       contentStyle={{ backgroundColor: '#18181b', border: '1px solid #27272a', borderRadius: '8px' }}
                       itemStyle={{ color: '#fff' }}
-                      formatter={(value: number) => [`₹${value.toLocaleString("en-IN")}`, "Value"]}
+                      formatter={(value: any) => [`₹${value.toLocaleString("en-IN")}`, "Value"]}
                     />
                     <Legend />
                   </RePieChart>

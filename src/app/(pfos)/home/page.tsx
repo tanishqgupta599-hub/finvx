@@ -188,7 +188,7 @@ export default function Home() {
                 }}
               />
               <Link href="/oracle">
-                <Button size="default" className="bg-white text-black hover:bg-zinc-200 font-semibold px-6 rounded-xl shadow-[0_0_20px_rgba(255,255,255,0.3)]">
+                <Button size="md" className="bg-white text-black hover:bg-zinc-200 font-semibold px-6 rounded-xl shadow-[0_0_20px_rgba(255,255,255,0.3)]">
                   Ask
                 </Button>
               </Link>
@@ -397,9 +397,9 @@ export default function Home() {
               <button
                 key={action.type}
                 onClick={() => setQuickAdd(action.type as QuickAddType)}
-                className="flex items-center gap-2 px-4 py-2 rounded-full bg-white/5 hover:bg-white/10 border border-white/5 text-xs font-medium text-white transition-colors whitespace-nowrap"
+                className="flex items-center gap-2 px-4 py-3 md:py-2 rounded-full bg-white/5 hover:bg-white/10 border border-white/5 text-sm md:text-xs font-medium text-white transition-colors whitespace-nowrap active:scale-95"
               >
-                <action.icon className="h-3 w-3" />
+                <action.icon className="h-4 w-4 md:h-3 md:w-3" />
                 {action.label}
               </button>
             ))}
@@ -517,8 +517,8 @@ export default function Home() {
                 onChange={(val) => setForm({ ...form, category: val })}
               >
                 {EXPENSE_CATEGORIES.map((cat) => (
-                  <option key={cat} value={cat}>
-                    {cat.charAt(0).toUpperCase() + cat.slice(1)}
+                  <option key={cat.value} value={cat.value}>
+                    {cat.label}
                   </option>
                 ))}
               </Select>
@@ -612,7 +612,7 @@ export default function Home() {
 
           <div className="flex justify-end gap-2 pt-4">
             <Button
-              variant="outline"
+              variant="secondary"
               onClick={() => setQuickAdd(null)}
               className="border-white/10 hover:bg-white/5"
             >

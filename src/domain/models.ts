@@ -154,6 +154,8 @@ export interface ScamCheck {
   riskLevel: "low" | "medium" | "high";
   status: "pending" | "safe" | "review";
   notes?: string;
+  date?: string;
+  description?: string;
 }
 
 export interface AutopsyReport {
@@ -194,6 +196,8 @@ export interface VaultDocument {
   name: string;
   category: string;
   tags: string[];
+  dateAdded?: string;
+  url?: string;
 }
 
 export interface NotificationPreferences {

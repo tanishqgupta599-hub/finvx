@@ -316,7 +316,7 @@ export default function Cards() {
                         borderRadius: 8,
                         border: "1px solid rgba(129, 140, 248, 0.4)",
                       }}
-                      formatter={(value: unknown, name: string) => {
+                      formatter={(value: any, name: any) => {
                         if (typeof value !== "number") return value;
                         if (name === "utilization") {
                           return [`${value}%`, "Utilisation"];

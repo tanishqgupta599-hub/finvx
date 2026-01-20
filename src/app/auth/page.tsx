@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { motion } from "framer-motion";
 import { Zap, Shield, Sparkles } from "lucide-react";
@@ -11,7 +11,7 @@ import { useAuthStore } from "@/state/auth-store";
 
 type Mode = "login" | "signup";
 
-export default function AuthPage() {
+function AuthContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const user = useAuthStore((s) => s.user);
@@ -361,5 +361,13 @@ export default function AuthPage() {
         </motion.div>
       </div>
     </div>
+  );
+}
+
+export default function AuthPage() {
+  return (
+    <Suspense fallback={<div className="flex min-h-screen items-center justify-center bg-slate-950 text-white">Loading...</div>}>
+      <AuthContent />
+    </Suspense>
   );
 }

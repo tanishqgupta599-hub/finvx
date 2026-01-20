@@ -116,11 +116,21 @@ export function TopBar() {
       <div className="mx-auto flex h-14 w-full max-w-7xl items-center gap-3 px-4 md:px-6">
         <div className="text-lg font-bold tracking-tight bg-gradient-to-br from-cyan-400 to-purple-600 bg-clip-text text-transparent">Finverse</div>
         <div className="ml-auto flex items-center gap-2">
+          {/* Mobile Search Trigger */}
+          <button
+            type="button"
+            onClick={() => setOpen(true)}
+            className="flex md:hidden items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3 py-1.5 text-xs text-zinc-400 mr-1"
+          >
+            <Search className="h-3.5 w-3.5" />
+            <span>Search</span>
+          </button>
+
           <button
             type="button"
             aria-label="Open command palette"
             onClick={() => setOpen(true)}
-            className="rounded-full p-2 text-zinc-400 transition-colors hover:bg-white/10 hover:text-white"
+            className="hidden md:block rounded-full p-2 text-zinc-400 transition-colors hover:bg-white/10 hover:text-white"
           >
             <Search className="h-5 w-5" />
           </button>
@@ -167,7 +177,7 @@ export function TopBar() {
                 placeholder="Jump to a module or search transactions, cards, policies…"
                 value={query}
                 onChange={(event) => setQuery(event.target.value)}
-                className="h-8 border-none bg-transparent px-0 text-sm text-white placeholder:text-zinc-600 focus-visible:ring-0"
+                className="h-8 border-none bg-transparent px-0 text-base md:text-sm text-white placeholder:text-zinc-600 focus-visible:ring-0"
               />
               <span className="ml-auto hidden text-[10px] text-zinc-500 sm:inline-flex">Ctrl + K</span>
             </div>
@@ -217,7 +227,7 @@ export function TopBar() {
                 if (feedbackError && event.target.value.trim()) setFeedbackError("");
               }}
               rows={4}
-              className="mt-3 w-full rounded-2xl border border-zinc-200 bg-white p-3 text-sm outline-none ring-0 placeholder:text-zinc-400 focus:border-zinc-300 dark:border-zinc-800 dark:bg-zinc-950 dark:placeholder:text-zinc-500"
+              className="mt-3 w-full rounded-2xl border border-zinc-200 bg-white p-3 text-base md:text-sm outline-none ring-0 placeholder:text-zinc-400 focus:border-zinc-300 dark:border-zinc-800 dark:bg-zinc-950 dark:placeholder:text-zinc-500"
               placeholder="Share a small note about what feels smooth, confusing, or missing."
             />
             {feedbackError && (

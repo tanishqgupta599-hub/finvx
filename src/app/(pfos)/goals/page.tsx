@@ -252,7 +252,7 @@ export default function Goals() {
                         borderRadius: 8,
                         border: "1px solid rgba(129, 140, 248, 0.4)",
                       }}
-                      formatter={(value: unknown) =>
+                      formatter={(value: any) =>
                         typeof value === "number" ? `${value}/100` : value
                       }
                     />

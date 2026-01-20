@@ -511,7 +511,8 @@ export default function Landing() {
                <motion.div 
                  initial={{ opacity: 0, y: 20 }}
                  whileInView={{ opacity: 1, y: 0 }}
-                 viewport={{ once: true, delay: 0.1 }}
+                 viewport={{ once: true }}
+                 transition={{ delay: 0.1 }}
                  className="relative rounded-3xl border border-white/10 bg-zinc-900/50 p-8 backdrop-blur-md"
                >
                  <div className="mb-4 text-lg font-medium text-zinc-400">Legacy</div>
@@ -535,7 +536,8 @@ export default function Landing() {
                <motion.div 
                  initial={{ opacity: 0, y: 20 }}
                  whileInView={{ opacity: 1, y: 0 }}
-                 viewport={{ once: true, delay: 0.2 }}
+                 viewport={{ once: true }}
+                 transition={{ delay: 0.2 }}
                  className="relative rounded-3xl border border-cyan-500/30 bg-zinc-900/80 p-8 backdrop-blur-md shadow-2xl shadow-cyan-900/20"
                >
                  <div className="absolute -top-4 left-1/2 -translate-x-1/2 rounded-full bg-gradient-to-r from-cyan-500 to-blue-600 px-4 py-1 text-xs font-bold text-white">
@@ -566,7 +568,8 @@ export default function Landing() {
                <motion.div 
                  initial={{ opacity: 0, y: 20 }}
                  whileInView={{ opacity: 1, y: 0 }}
-                 viewport={{ once: true, delay: 0.3 }}
+                 viewport={{ once: true }}
+                 transition={{ delay: 0.3 }}
                  className="relative rounded-3xl border border-white/10 bg-zinc-900/50 p-8 backdrop-blur-md"
                >
                  <div className="mb-4 text-lg font-medium text-purple-400">Sovereign</div>

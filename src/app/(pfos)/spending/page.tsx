@@ -295,7 +295,7 @@ export default function Spending() {
                           borderRadius: 8,
                           border: "1px solid rgba(34, 211, 238, 0.3)",
                         }}
-                        formatter={(value: unknown) =>
+                        formatter={(value: any) =>
                           typeof value === "number"
                             ? `₹${Math.round(value).toLocaleString("en-IN")}`
                             : value
