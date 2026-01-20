@@ -415,7 +415,7 @@ export default function Cards() {
                         <div className="text-right">
                           ₹{(c.limit || 0).toLocaleString("en-IN")}
                         </div>
-                        <div>Balance</div>
+                        <div>Limit Utilized</div>
                         <div className="text-right">
                           ₹{(c.balance || 0).toLocaleString("en-IN")}
                         </div>
@@ -593,7 +593,7 @@ export default function Cards() {
             }
           />
           <Input
-            placeholder="Current Balance"
+            placeholder="Limit Utilized"
             inputMode="decimal"
             value={cardForm.balance}
             onChange={(e) =>
