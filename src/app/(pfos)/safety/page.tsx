@@ -259,7 +259,7 @@ export default function Safety() {
           {!overwhelmMode && (
             <div className="mt-6">
               <div className="text-xs text-zinc-500">Checklist (frontend only)</div>
-              <div className="mt-2 h-20 rounded-2xl bg-gradient-to-r from-zinc-100 to-zinc-50 dark:from-zinc-900 dark:to-zinc-800">
+              <div className="mt-2 h-20 rounded-2xl bg-gradient-to-r from-zinc-900 to-zinc-800">
                 <Skeleton className="h-full w-full rounded-2xl opacity-40" />
               </div>
             </div>
@@ -334,13 +334,13 @@ export default function Safety() {
                 A light, human checklist for when life throws a health curveball.
               </div>
               <div className="mt-3 grid gap-2 text-xs">
-                <div className="rounded-xl bg-zinc-50 p-3 dark:bg-zinc-900">
+                <div className="rounded-xl bg-zinc-900 p-3">
                   Insurance card, ID proofs, and hospital preferences are easy to find.
                 </div>
-                <div className="rounded-xl bg-zinc-50 p-3 dark:bg-zinc-900">
+                <div className="rounded-xl bg-zinc-900 p-3">
                   Emergency contact knows which policy, TPA, and network hospital to use.
                 </div>
-                <div className="rounded-xl bg-zinc-50 p-3 dark:bg-zinc-900">
+                <div className="rounded-xl bg-zinc-900 p-3">
                   Basic medical history is written somewhere that loved ones can access.
                 </div>
               </div>
@@ -425,7 +425,7 @@ export default function Safety() {
                 {contacts.map((c) => (
                   <div
                     key={c.id}
-                    className="rounded-xl bg-zinc-50 p-3 dark:bg-zinc-900"
+                    className="rounded-xl bg-zinc-900 p-3"
                   >
                     <div className="flex items-center justify-between">
                       <div className="font-medium">{c.name}</div>
@@ -467,7 +467,7 @@ export default function Safety() {
             {filteredVaultDocs.map((d) => (
               <div
                 key={d.id}
-                className="rounded-xl bg-zinc-50 p-3 dark:bg-zinc-900"
+                className="rounded-xl bg-zinc-900 p-3"
               >
                 <div className="flex items-center justify-between">
                   <div className="font-medium">{d.name}</div>
@@ -619,7 +619,7 @@ export default function Safety() {
               setVaultForm((f) => ({ ...f, tags: e.target.value }))
             }
           />
-          <div className="rounded-xl bg-zinc-50 p-3 text-xs text-zinc-500 dark:bg-zinc-900">
+          <div className="rounded-xl bg-zinc-900 p-3 text-xs text-zinc-500">
             File upload is intentionally a stub. Store documents in your own secure storage and
             treat this vault as the calm index for where things live.
           </div>

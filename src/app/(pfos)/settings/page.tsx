@@ -211,7 +211,7 @@ export default function Settings() {
         <CardContent>
           <div className="text-sm font-medium">Notifications</div>
           <div className="mt-3 grid grid-cols-1 gap-3 sm:grid-cols-2 md:grid-cols-4 text-sm">
-            <div className="flex items-center justify-between rounded-xl bg-zinc-50 p-3 dark:bg-zinc-900">
+            <div className="flex items-center justify-between rounded-xl bg-zinc-900 p-3">
               <div>Email</div>
               <Switch
                 checked={notificationPreferences.email}
@@ -221,7 +221,7 @@ export default function Settings() {
                 }}
               />
             </div>
-            <div className="flex items-center justify-between rounded-xl bg-zinc-50 p-3 dark:bg-zinc-900">
+            <div className="flex items-center justify-between rounded-xl bg-zinc-900 p-3">
               <div>Push</div>
               <Switch
                 checked={notificationPreferences.push}
@@ -231,7 +231,7 @@ export default function Settings() {
                 }}
               />
             </div>
-            <div className="flex items-center justify-between rounded-xl bg-zinc-50 p-3 dark:bg-zinc-900">
+            <div className="flex items-center justify-between rounded-xl bg-zinc-900 p-3">
               <div>Product updates</div>
               <Switch
                 checked={notificationPreferences.productUpdates}
@@ -243,7 +243,7 @@ export default function Settings() {
                 }}
               />
             </div>
-            <div className="flex items-center justify-between rounded-xl bg-zinc-50 p-3 dark:bg-zinc-900">
+            <div className="flex items-center justify-between rounded-xl bg-zinc-900 p-3">
               <div>Reminders</div>
               <Switch
                 checked={notificationPreferences.reminders}
@@ -304,21 +304,21 @@ export default function Settings() {
             <div className="mt-3 grid gap-2 text-sm">
               <a
                 href="#"
-                className="flex items-center justify-between rounded-xl bg-zinc-50 p-3 text-left hover:bg-zinc-100 dark:bg-zinc-900 dark:hover:bg-zinc-800"
+                className="flex items-center justify-between rounded-xl bg-zinc-900 p-3 text-left hover:bg-zinc-800"
               >
                 <span>Terms of use</span>
                 <span className="text-xs text-zinc-500">View</span>
               </a>
               <a
                 href="#"
-                className="flex items-center justify-between rounded-xl bg-zinc-50 p-3 text-left hover:bg-zinc-100 dark:bg-zinc-900 dark:hover:bg-zinc-800"
+                className="flex items-center justify-between rounded-xl bg-zinc-900 p-3 text-left hover:bg-zinc-800"
               >
                 <span>Privacy policy</span>
                 <span className="text-xs text-zinc-500">View</span>
               </a>
               <a
                 href="#"
-                className="flex items-center justify-between rounded-xl bg-zinc-50 p-3 text-left hover:bg-zinc-100 dark:bg-zinc-900 dark:hover:bg-zinc-800"
+                className="flex items-center justify-between rounded-xl bg-zinc-900 p-3 text-left hover:bg-zinc-800"
               >
                 <span>Risk and disclaimer</span>
                 <span className="text-xs text-zinc-500">View</span>
@@ -327,6 +327,40 @@ export default function Settings() {
           </CardContent>
         </Card>
       </div>
+
+      <Card>
+        <CardContent>
+          <div className="space-y-3 text-sm">
+            <button
+              onClick={() => {
+                const url = window.location.href;
+                navigator.clipboard.writeText(url);
+                toast.success("Link copied");
+              }}
+              className="flex items-center justify-between rounded-xl bg-zinc-900 p-3 text-left hover:bg-zinc-800"
+            >
+              <span className="font-medium">Share this app</span>
+              <span className="text-xs text-zinc-500">Copy link</span>
+            </button>
+            <button
+              onClick={() => window.open("mailto:support@example.com")}
+              className="flex items-center justify-between rounded-xl bg-zinc-900 p-3 text-left hover:bg-zinc-800"
+            >
+              <span className="font-medium">Contact support</span>
+              <span className="text-xs text-zinc-500">Email us</span>
+            </button>
+            <button
+              onClick={() => {
+                toast.info("Opening FAQs...");
+              }}
+              className="flex items-center justify-between rounded-xl bg-zinc-900 p-3 text-left hover:bg-zinc-800"
+            >
+              <span className="font-medium">FAQs</span>
+              <span className="text-xs text-zinc-500">View</span>
+            </button>
+          </div>
+        </CardContent>
+      </Card>
 
       <Card>
         <CardContent>
@@ -356,7 +390,7 @@ export default function Settings() {
             {Object.entries(flags).map(([k, v]) => (
               <div
                 key={k}
-                className="flex items-center justify-between rounded-xl bg-zinc-50 p-3 text-sm dark:bg-zinc-900"
+                className="flex items-center justify-between rounded-xl bg-zinc-900 p-3 text-sm"
               >
                 <div className="capitalize">
                   {k.replace(/([A-Z])/g, " $1")}

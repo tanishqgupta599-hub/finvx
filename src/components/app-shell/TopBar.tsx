@@ -227,7 +227,7 @@ export function TopBar() {
                 if (feedbackError && event.target.value.trim()) setFeedbackError("");
               }}
               rows={4}
-              className="mt-3 w-full rounded-2xl border border-zinc-200 bg-white p-3 text-base md:text-sm outline-none ring-0 placeholder:text-zinc-400 focus:border-zinc-300 dark:border-zinc-800 dark:bg-zinc-950 dark:placeholder:text-zinc-500"
+              className="mt-3 w-full rounded-2xl border border-zinc-800 bg-zinc-950 p-3 text-base md:text-sm outline-none ring-0 placeholder:text-zinc-500 focus:border-zinc-700"
               placeholder="Share a small note about what feels smooth, confusing, or missing."
             />
             {feedbackError && (

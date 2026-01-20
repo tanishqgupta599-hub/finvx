@@ -78,38 +78,41 @@ export default function Scam() {
               onChange={(e) => setText(e.target.value)}
               placeholder="Paste the suspicious text here..."
               rows={6}
-              className="w-full rounded-xl border border-zinc-200 bg-white p-2 text-sm outline-none focus:border-zinc-400 dark:border-zinc-800 dark:bg-zinc-950"
+              className="w-full rounded-xl border border-zinc-800 bg-zinc-950 p-2 text-sm outline-none focus:border-zinc-400"
             />
             <Button size="sm" onClick={runCheck}>
               Run quick check
             </Button>
             {result && (
               <div className="grid grid-cols-1 gap-3 md:grid-cols-3 text-xs">
-                <div className="rounded-xl bg-zinc-50 p-3 dark:bg-zinc-900">
-                  <div className="text-zinc-500">Risk score</div>
-                  <div className="mt-1 text-lg font-semibold">
+                <div className="rounded-xl bg-zinc-900 p-3">
+                  <div className="text-xs text-zinc-500">Risk Score</div>
+                  <div
+                    className={`mt-1 text-xl font-bold ${
+                      result.riskScore >= 70
+                        ? "text-red-500"
+                        : result.riskScore >= 40
+                          ? "text-amber-500"
+                          : "text-emerald-500"
+                    }`}
+                  >
                     {result.riskScore}/100
                   </div>
-                  <div className="mt-1 text-zinc-500">{result.riskLabel}</div>
                 </div>
-                <div className="rounded-xl bg-zinc-50 p-3 dark:bg-zinc-900 md:col-span-2">
-                  <div className="text-zinc-500">Red flags spotted</div>
-                  <ul className="mt-1 list-disc space-y-1 pl-4">
-                    {result.redFlags.map((f) => (
-                      <li key={f}>{f}</li>
-                    ))}
-                  </ul>
-                </div>
-                {!overwhelmMode && (
-                  <div className="md:col-span-3 rounded-xl bg-zinc-50 p-3 text-xs text-zinc-600 dark:bg-zinc-900">
-                    <div className="font-medium">Suggested next steps</div>
-                    <ul className="mt-1 list-disc space-y-1 pl-4">
-                      {result.steps.map((s) => (
-                        <li key={s}>{s}</li>
-                      ))}
-                    </ul>
+
+                <div className="rounded-xl bg-zinc-900 p-3">
+                  <div className="text-xs text-zinc-500">Red Flags</div>
+                  <div className="mt-1 text-xl font-bold text-zinc-100">
+                    {result.redFlags.length}
                   </div>
-                )}
+                </div>
+
+                <div className="md:col-span-2 rounded-xl bg-zinc-900 p-3">
+                  <div className="text-xs text-zinc-500">Suggested Next Step</div>
+                  <div className="mt-1 text-sm font-medium text-zinc-100">
+                    {result.steps[0]}
+                  </div>
+                </div>
               </div>
             )}
           </div>

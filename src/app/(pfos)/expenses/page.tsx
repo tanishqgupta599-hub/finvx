@@ -217,7 +217,7 @@ export default function Expenses() {
             </div>
             
             {!overwhelmMode && (
-              <div className="rounded-2xl bg-zinc-50 p-4 text-sm dark:bg-zinc-900 sm:col-span-2">
+              <div className="rounded-2xl bg-zinc-900 p-4 text-sm sm:col-span-2">
                 <div className="text-xs text-zinc-500">Smart Insight</div>
                 <div className="mt-1 font-medium">
                   Tracking every rupee? Good. 
@@ -245,7 +245,7 @@ export default function Expenses() {
                 {expenses.slice(0, 20).map((t) => (
                   <div
                     key={t.id}
-                    className="flex items-center justify-between rounded-xl bg-zinc-50 p-3 text-sm dark:bg-zinc-900"
+                    className="flex items-center justify-between rounded-xl bg-zinc-900 p-3 text-sm"
                   >
                     <div className="flex items-center gap-3">
                       <div className={`p-2 rounded-full ${
@@ -296,7 +296,7 @@ export default function Expenses() {
                         <span className="font-medium text-zinc-700 dark:text-zinc-300">{item.label}</span>
                         <span className="text-zinc-500">₹{item.value.toLocaleString("en-IN")}</span>
                       </div>
-                      <div className="h-2 w-full rounded-full bg-zinc-100 dark:bg-zinc-800 overflow-hidden">
+                      <div className="h-2 w-full rounded-full bg-zinc-800 overflow-hidden">
                         <div
                           className="h-full rounded-full bg-rose-500 transition-all duration-500"
                           style={{ width: `${Math.min((item.value / monthlyTotal) * 100, 100)}%` }}
@@ -320,7 +320,7 @@ export default function Expenses() {
             <div className="space-y-3">
               <div className="text-xs text-zinc-500 uppercase tracking-wider">Credit Cards</div>
               {creditCards.map(card => (
-                 <div key={card.id} className="flex justify-between items-center text-sm p-2 bg-zinc-50 rounded-lg dark:bg-zinc-900">
+                 <div key={card.id} className="flex justify-between items-center text-sm p-2 bg-zinc-900 rounded-lg">
                     <span className="font-medium">{card.brand.toUpperCase()} {card.last4}</span>
                     <div className="text-right">
                       <div className="text-xs text-emerald-600">Avail: ₹{(card.limit - card.balance).toLocaleString("en-IN")}</div>
@@ -330,7 +330,7 @@ export default function Expenses() {
               ))}
                <div className="text-xs text-zinc-500 uppercase tracking-wider mt-4">Cash / Bank</div>
               {cashAssets.map(asset => (
-                 <div key={asset.id} className="flex justify-between items-center text-sm p-2 bg-zinc-50 rounded-lg dark:bg-zinc-900">
+                 <div key={asset.id} className="flex justify-between items-center text-sm p-2 bg-zinc-900 rounded-lg">
                     <span className="font-medium">{asset.name}</span>
                     <span className="text-zinc-500">Avail: ₹{asset.value.toLocaleString("en-IN")}</span>
                  </div>
@@ -347,12 +347,12 @@ export default function Expenses() {
         title={editingId ? "Edit Expense" : "Log Expense"}
       >
         <div className="space-y-4 pt-4">
-          <div className="flex rounded-lg bg-zinc-100 p-1 dark:bg-zinc-800">
+          <div className="flex rounded-lg bg-zinc-800 p-1">
             <button
               className={`flex-1 rounded-md py-1.5 text-sm font-medium transition-all ${
                 form.paymentType === "asset"
-                  ? "bg-white shadow dark:bg-zinc-700"
-                  : "text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-300"
+                  ? "bg-zinc-700 shadow"
+                  : "text-zinc-500 hover:text-zinc-300"
               }`}
               onClick={() => setForm(f => ({ ...f, paymentType: "asset", sourceId: "" }))}
             >
@@ -361,8 +361,8 @@ export default function Expenses() {
             <button
               className={`flex-1 rounded-md py-1.5 text-sm font-medium transition-all ${
                 form.paymentType === "creditCard"
-                  ? "bg-white shadow dark:bg-zinc-700"
-                  : "text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-300"
+                  ? "bg-zinc-700 shadow"
+                  : "text-zinc-500 hover:text-zinc-300"
               }`}
               onClick={() => setForm(f => ({ ...f, paymentType: "creditCard", sourceId: "" }))}
             >

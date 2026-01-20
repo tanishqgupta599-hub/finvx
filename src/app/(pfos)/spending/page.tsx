@@ -226,17 +226,24 @@ export default function Spending() {
                   ₹{Math.round(monthlyIncome).toLocaleString("en-IN")}
                 </div>
               </div>
-              <div className="rounded-2xl bg-zinc-50 p-4 text-sm dark:bg-zinc-900">
-                <div className="text-xs text-zinc-500">Net flow</div>
-                <div className="mt-1 text-lg font-semibold">
-                  ₹{Math.round(monthlyIncome - monthlySpending).toLocaleString(
-                    "en-IN",
-                  )}
+              <div className="rounded-2xl bg-zinc-900 p-4 text-sm">
+                <div className="text-xs text-zinc-500">Net Flow</div>
+                <div
+                  className={`mt-1 text-lg font-semibold ${
+                    monthlyIncome - monthlySpending >= 0
+                      ? "text-emerald-500"
+                      : "text-rose-500"
+                  }`}
+                >
+                  {monthlyIncome - monthlySpending >= 0 ? "+" : "-"}₹
+                  {Math.round(
+                    Math.abs(monthlyIncome - monthlySpending)
+                  ).toLocaleString("en-IN")}
                 </div>
               </div>
-              <div className="rounded-2xl bg-zinc-50 p-4 text-sm dark:bg-zinc-900">
-                <div className="text-xs text-zinc-500">Subscriptions / mo</div>
-                <div className="mt-1 text-lg font-semibold">
+              <div className="rounded-2xl bg-zinc-900 p-4 text-sm">
+                <div className="text-xs text-zinc-500">Subscriptions/mo</div>
+                <div className="mt-1 text-lg font-semibold text-zinc-100">
                   ₹
                   {subs
                     .reduce((sum, s) => sum + s.amount, 0)
@@ -373,7 +380,7 @@ export default function Spending() {
               {filteredTransactions.slice(0, 20).map((t) => (
                 <div
                   key={t.id}
-                  className="flex items-center justify-between rounded-xl bg-zinc-50 p-2 text-sm dark:bg-zinc-900"
+                  className="flex items-center justify-between rounded-xl bg-zinc-900 p-2 text-sm"
                 >
                   <div>
                     <div>{t.description}</div>
@@ -407,7 +414,7 @@ export default function Spending() {
                 {categoryBreakdown.map((item) => (
                   <div
                     key={item.category}
-                    className="flex items-center justify-between rounded-xl bg-zinc-50 p-2 dark:bg-zinc-900"
+                    className="flex items-center justify-between rounded-xl bg-zinc-900 p-2"
                   >
                     <div className="font-medium">{item.label}</div>
                     <div>₹{Math.round(item.amount).toLocaleString("en-IN")}</div>
@@ -445,7 +452,7 @@ export default function Spending() {
                   key={s.id}
                   type="button"
                   onClick={() => openEditSubscription(s.id)}
-                  className="flex items-center justify-between rounded-xl bg-zinc-50 p-3 text-left text-sm hover:bg-zinc-100 dark:bg-zinc-900 dark:hover:bg-zinc-800"
+                  className="flex items-center justify-between rounded-xl bg-zinc-900 p-3 text-left text-sm hover:bg-zinc-800"
                 >
                   <div>
                     <div className="font-medium">{s.name}</div>
@@ -491,7 +498,7 @@ export default function Spending() {
                 className="mt-2 w-full"
               />
             </div>
-            <div className="mt-3 rounded-xl bg-zinc-50 p-3 text-xs dark:bg-zinc-900">
+            <div className="mt-3 rounded-xl bg-zinc-900 p-3 text-xs">
               <div className="text-zinc-500">Guilt-free daily</div>
               <div className="mt-1 text-sm font-semibold">
                 {dailyAllowance
@@ -537,33 +544,38 @@ export default function Spending() {
               }))
             }
           >
-            <option value="income">Income</option>
             {EXPENSE_CATEGORIES.map((c) => (
               <option key={c.value} value={c.value}>
                 {c.label}
               </option>
             ))}
           </Select>
-          <Input
-            type="date"
-            value={txnForm.date}
-            onChange={(e) =>
-              setTxnForm((f) => ({ ...f, date: e.target.value }))
-            }
-          />
-          <Select
-            value={txnForm.account}
-            onChange={(v) =>
-              setTxnForm((f) => ({ ...f, account: v }))
-            }
-          >
-            <option value="">Select Account (Required)</option>
-            {assets.filter((a) => a.type === "cash").map((a) => (
-              <option key={a.id} value={a.name}>
-                {a.name}
-              </option>
-            ))}
-          </Select>
+          <div className="space-y-1">
+            <div className="text-xs text-zinc-500 px-1">Date</div>
+            <Input
+              type="date"
+              value={txnForm.date}
+              onChange={(e) =>
+                setTxnForm((f) => ({ ...f, date: e.target.value }))
+              }
+            />
+          </div>
+          <div className="space-y-1">
+            <div className="text-xs text-zinc-500 px-1">Account</div>
+            <Select
+              value={txnForm.account}
+              onChange={(v) =>
+                setTxnForm((f) => ({ ...f, account: v }))
+              }
+            >
+              <option value="">Select account...</option>
+              {assets.filter(a => a.type === 'cash' || a.type === 'other').map((a) => (
+                <option key={a.id} value={a.name}>
+                  {a.name} (₹{a.value.toLocaleString("en-IN")})
+                </option>
+              ))}
+            </Select>
+          </div>
           <Button className="w-full" onClick={saveTransaction}>
             Save
           </Button>
@@ -577,14 +589,14 @@ export default function Spending() {
       >
         <div className="space-y-3 text-sm">
           <Input
-            placeholder="Name"
+            placeholder="Subscription name"
             value={subscriptionForm.name}
             onChange={(e) =>
               setSubscriptionForm((f) => ({ ...f, name: e.target.value }))
             }
           />
           <Input
-            placeholder="Amount per billing"
+            placeholder="Amount"
             inputMode="decimal"
             value={subscriptionForm.amount}
             onChange={(e) =>
@@ -604,16 +616,19 @@ export default function Spending() {
             <option value="yearly">Yearly</option>
             <option value="weekly">Weekly</option>
           </Select>
-          <Input
-            type="date"
-            value={subscriptionForm.nextChargeDate}
-            onChange={(e) =>
-              setSubscriptionForm((f) => ({
-                ...f,
-                nextChargeDate: e.target.value,
-              }))
-            }
-          />
+          <div className="space-y-1">
+            <div className="text-xs text-zinc-500 px-1">Next Charge</div>
+            <Input
+              type="date"
+              value={subscriptionForm.nextChargeDate}
+              onChange={(e) =>
+                setSubscriptionForm((f) => ({
+                  ...f,
+                  nextChargeDate: e.target.value,
+                }))
+              }
+            />
+          </div>
           <Button className="w-full" onClick={saveSubscription}>
             Save
           </Button>

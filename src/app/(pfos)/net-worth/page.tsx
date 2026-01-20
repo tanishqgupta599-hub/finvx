@@ -289,7 +289,7 @@ export default function NetWorth() {
                   key={a.id}
                   type="button"
                   onClick={() => openEditAsset(a.id)}
-                  className="flex items-center justify-between rounded-xl bg-zinc-50 p-2 text-left text-sm hover:bg-zinc-100 dark:bg-zinc-900 dark:hover:bg-zinc-800"
+                  className="flex items-center justify-between rounded-xl bg-zinc-900 p-2 text-left text-sm hover:bg-zinc-800"
                 >
                   <div>
                     <div>{a.name}</div>
@@ -321,7 +321,7 @@ export default function NetWorth() {
                   key={l.id}
                   type="button"
                   onClick={() => openEditLiability(l.id)}
-                  className="flex items-center justify-between rounded-xl bg-zinc-50 p-2 text-left text-sm hover:bg-zinc-100 dark:bg-zinc-900 dark:hover:bg-zinc-800"
+                  className="flex items-center justify-between rounded-xl bg-zinc-900 p-2 text-left text-sm hover:bg-zinc-800"
                 >
                   <div>
                     <div>{l.name}</div>
@@ -418,7 +418,7 @@ export default function NetWorth() {
       </Sheet>
       <Sheet open={exportOpen} onOpenChange={setExportOpen} title="Snapshot export">
         <div className="space-y-3 text-sm">
-          <div className="rounded-2xl bg-zinc-50 p-3 text-xs text-zinc-600 dark:bg-zinc-900">
+          <div className="rounded-2xl bg-zinc-900 p-3 text-xs text-zinc-400">
             {snapshotText}
           </div>
           <Button className="w-full" onClick={copySnapshot}>

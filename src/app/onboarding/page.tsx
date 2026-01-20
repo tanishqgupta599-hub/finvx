@@ -178,8 +178,8 @@ export default function Onboarding() {
   };
 
   return (
-    <div className="flex min-h-dvh items-center justify-center bg-gradient-to-b from-zinc-50 to-white px-4 py-8 dark:from-black dark:to-zinc-950">
-      <Card className="w-full max-w-2xl border-zinc-200/70 bg-white/70 backdrop-blur dark:border-zinc-800/70 dark:bg-zinc-950/80">
+    <div className="flex min-h-dvh items-center justify-center bg-gradient-to-b from-black to-zinc-950 px-4 py-8">
+      <Card className="w-full max-w-2xl border-zinc-800/70 bg-zinc-950/80 backdrop-blur">
         <CardContent className="p-6 sm:p-8">
           <div className="flex items-center justify-between gap-4">
             <div>
@@ -194,9 +194,9 @@ export default function Onboarding() {
               Skip for now
             </button>
           </div>
-          <div className="mt-4 h-1.5 w-full rounded-full bg-zinc-100 dark:bg-zinc-800">
+          <div className="mt-4 h-1.5 w-full rounded-full bg-zinc-800">
             <div
-              className="h-1.5 rounded-full bg-zinc-900 transition-all dark:bg-zinc-100"
+              className="h-1.5 rounded-full bg-zinc-100 transition-all"
               style={{ width: `${progress}%` }}
             />
           </div>
@@ -265,8 +265,8 @@ export default function Onboarding() {
                   />
                 </div>
                 <div className="grid gap-3 sm:grid-cols-2">
-                  <div className="flex items-center justify-between rounded-2xl bg-zinc-50 px-3 py-2 text-sm dark:bg-zinc-900">
-                    <span>Dependents</span>
+                  <div className="flex items-center justify-between rounded-2xl bg-zinc-900 px-3 py-2 text-sm">
+                    <span className="text-zinc-500">Dependents</span>
                     <div className="flex items-center gap-2 text-xs text-zinc-500">
                       <span>{hasDependents ? "Yes" : "No"}</span>
                       <Switch checked={hasDependents} onCheckedChange={setHasDependents} />
@@ -367,7 +367,7 @@ export default function Onboarding() {
                     return (
                       <div
                         key={index}
-                        className="grid gap-2 rounded-2xl bg-zinc-50 p-3 text-sm dark:bg-zinc-900"
+                        className="grid gap-2 rounded-2xl bg-zinc-900 p-3 text-sm"
                       >
                         <Input
                           placeholder="Loan or EMI name"
@@ -421,12 +421,12 @@ export default function Onboarding() {
               <div className="space-y-4">
                 <div className="text-lg font-semibold">Safety basics</div>
                 <div className="grid gap-3 sm:grid-cols-2">
-                  <div className="flex items-center justify-between rounded-2xl bg-zinc-50 px-3 py-2 text-sm dark:bg-zinc-900">
-                    <span>Health insurance</span>
+                  <div className="flex items-center justify-between rounded-2xl bg-zinc-900 px-3 py-2 text-sm">
+                    <span className="text-zinc-500">Health insurance</span>
                     <Switch checked={insuranceHealth} onCheckedChange={setInsuranceHealth} />
                   </div>
-                  <div className="flex items-center justify-between rounded-2xl bg-zinc-50 px-3 py-2 text-sm dark:bg-zinc-900">
-                    <span>Term cover</span>
+                  <div className="flex items-center justify-between rounded-2xl bg-zinc-900 px-3 py-2 text-sm">
+                    <span className="text-zinc-500">Term cover</span>
                     <Switch checked={insuranceTerm} onCheckedChange={setInsuranceTerm} />
                   </div>
                 </div>
@@ -455,7 +455,7 @@ export default function Onboarding() {
             {step === 6 && (
               <div className="space-y-4">
                 <div className="text-lg font-semibold">Preview & demo data</div>
-                <div className="rounded-2xl bg-zinc-50 p-3 text-sm dark:bg-zinc-900">
+                <div className="rounded-2xl bg-zinc-900 p-3 text-sm">
                   <div className="font-medium">Use demo data</div>
                   <div className="mt-1 text-xs text-zinc-500">
                     Safe, high-quality dummy data lets you explore Finverse without connecting real

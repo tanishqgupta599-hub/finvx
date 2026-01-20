@@ -161,27 +161,27 @@ export default function Debt() {
           </div>
           {hasDebts ? (
             <div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-4">
-              <div className="rounded-2xl bg-zinc-50 p-4 text-sm dark:bg-zinc-900">
-                <div className="text-xs text-zinc-500">Total debt</div>
-                <div className="mt-1 text-lg font-semibold">
+              <div className="rounded-2xl bg-zinc-900 p-4 text-sm">
+                <div className="text-xs text-zinc-500">Total Debt</div>
+                <div className="mt-1 text-lg font-semibold text-rose-500">
                   ₹{totalDebt.toLocaleString("en-IN")}
                 </div>
               </div>
-              <div className="rounded-2xl bg-zinc-50 p-4 text-sm dark:bg-zinc-900">
-                <div className="text-xs text-zinc-500">Monthly payments</div>
-                <div className="mt-1 text-lg font-semibold">
+              <div className="rounded-2xl bg-zinc-900 p-4 text-sm">
+                <div className="text-xs text-zinc-500">Monthly Payments</div>
+                <div className="mt-1 text-lg font-semibold text-zinc-100">
                   ₹{totalEmi.toLocaleString("en-IN")}
                 </div>
               </div>
-              <div className="rounded-2xl bg-zinc-50 p-4 text-sm dark:bg-zinc-900">
-                <div className="text-xs text-zinc-500">Interest bleed (est.)</div>
-                <div className="mt-1 text-lg font-semibold">
-                  ₹{Math.round(interestBleed).toLocaleString("en-IN")}/month
+              <div className="rounded-2xl bg-zinc-900 p-4 text-sm">
+                <div className="text-xs text-zinc-500">Interest Bleed/mo</div>
+                <div className="mt-1 text-lg font-semibold text-amber-500">
+                  ₹{Math.round(interestBleed).toLocaleString("en-IN")}
                 </div>
               </div>
-              <div className="rounded-2xl bg-zinc-50 p-4 text-sm dark:bg-zinc-900">
-                <div className="text-xs text-zinc-500">Debt-free horizon</div>
-                <div className="mt-1 text-lg font-semibold">
+              <div className="rounded-2xl bg-zinc-900 p-4 text-sm">
+                <div className="text-xs text-zinc-500">Debt-Free Horizon</div>
+                <div className="mt-1 text-lg font-semibold text-emerald-500">
                   {yearsToDebtFree ? `~${yearsToDebtFree.toFixed(1)} years` : "Add payments"}
                 </div>
               </div>
@@ -247,7 +247,7 @@ export default function Debt() {
                   className={`flex items-center justify-between rounded-xl p-3 text-left text-sm ${
                     d.type === "card"
                       ? "bg-indigo-50/50 dark:bg-indigo-900/10 cursor-default"
-                      : "bg-zinc-50 hover:bg-zinc-100 dark:bg-zinc-900 dark:hover:bg-zinc-800"
+                      : "bg-zinc-900 hover:bg-zinc-800"
                   }`}
                 >
                   <div>
@@ -289,7 +289,7 @@ export default function Debt() {
                 {sortedDebts.map((d, idx) => (
                   <div
                     key={d.id}
-                    className="rounded-xl bg-zinc-50 p-3 text-xs dark:bg-zinc-900"
+                    className="rounded-xl bg-zinc-900 p-3 text-xs"
                   >
                     <div className="flex items-center justify-between">
                       <div className="font-medium">{d.name}</div>
@@ -354,7 +354,7 @@ export default function Debt() {
                     />
                   </div>
                   <div className="grid grid-cols-2 gap-3 text-xs">
-                    <div className="rounded-xl bg-zinc-50 p-3 dark:bg-zinc-900">
+                    <div className="rounded-xl bg-zinc-900 p-3">
                       <div className="text-zinc-500">Timeline change</div>
                       <div className="mt-1 text-sm font-semibold">
                         {monthsSaved > 0
@@ -362,7 +362,7 @@ export default function Debt() {
                           : "Adjust slider to preview"}
                       </div>
                     </div>
-                    <div className="rounded-xl bg-zinc-50 p-3 dark:bg-zinc-900">
+                    <div className="rounded-xl bg-zinc-900 p-3">
                       <div className="text-zinc-500">Interest avoided</div>
                       <div className="mt-1 text-sm font-semibold">
                         {interestSaved > 0
@@ -386,7 +386,7 @@ export default function Debt() {
                 quietly in the background.
               </div>
               <div className="mt-3 grid gap-2 text-sm">
-                <div className="rounded-xl bg-zinc-50 p-3 text-xs dark:bg-zinc-900">
+                <div className="rounded-xl bg-zinc-900 p-3 text-xs">
                   <div className="text-zinc-500">Projected interest over 12 months</div>
                   <div className="mt-1 text-sm font-semibold">
                     {hasLoans
@@ -394,14 +394,14 @@ export default function Debt() {
                       : "Add loans to see this"}
                   </div>
                 </div>
-                <div className="rounded-xl bg-zinc-50 p-3 text-xs dark:bg-zinc-900">
+                <div className="rounded-xl bg-zinc-900 p-3 text-xs">
                   <div className="text-zinc-500">Emotional load</div>
                   <div className="mt-1 text-sm">
                     Even small, predictable EMIs can feel heavy over time. One gentle step this
                     month is enough.
                   </div>
                 </div>
-                <div className="rounded-xl bg-zinc-50 p-3 text-xs dark:bg-zinc-900">
+                <div className="rounded-xl bg-zinc-900 p-3 text-xs">
                   <div className="text-zinc-500">Next kind step</div>
                   <div className="mt-1 text-sm">
                     Pick one focus loan and round up its EMI slightly. This app will help you track

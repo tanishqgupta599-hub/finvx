@@ -275,7 +275,7 @@ export default function Landing() {
                    {/* Calendar Grid Visual */}
                    <div className="grid grid-cols-7 gap-2 opacity-50">
                       {Array.from({ length: 28 }).map((_, i) => (
-                        <div key={i} className={`aspect-square rounded-md border border-white/5 ${i === 14 ? 'bg-purple-500/50 border-purple-500' : 'bg-white/5'}`} />
+                        <div key={i} className={`aspect-square rounded-md border border-white/5 ${i === 14 ? 'bg-purple-500/50 border-purple-500' : 'bg-zinc-900/5'}`} />
                       ))}
                    </div>
 
@@ -592,6 +592,54 @@ export default function Landing() {
                    Get Lifetime Access
                  </Link>
                </motion.div>
+            </div>
+
+            {/* Feature Comparison Table */}
+            <div className="mt-24 max-w-4xl mx-auto">
+              <h2 className="text-2xl font-bold text-center mb-12">Compare Plans</h2>
+              <div className="overflow-hidden rounded-2xl border border-white/10 bg-zinc-900/30">
+                <table className="w-full text-sm text-left">
+                  <thead>
+                    <tr className="border-b border-white/10 bg-zinc-900/50">
+                      <th className="p-4 font-medium text-zinc-400">Feature</th>
+                      <th className="p-4 font-medium text-white">Legacy (Free)</th>
+                      <th className="p-4 font-medium text-cyan-400">Citizen (Paid)</th>
+                      <th className="p-4 font-medium text-purple-400">Sovereign (Lifetime)</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-white/5">
+                    {[
+                      { name: "Manual Expense Tracking", legacy: true, citizen: true, sovereign: true },
+                      { name: "Unlimited Accounts", legacy: true, citizen: true, sovereign: true },
+                      { name: "Net Worth History", legacy: true, citizen: true, sovereign: true },
+                      { name: "Local Data Backup", legacy: true, citizen: true, sovereign: true },
+                      { name: "Ad-free Experience", legacy: true, citizen: true, sovereign: true },
+                      { name: "Oracle AI Strategist", legacy: false, citizen: true, sovereign: true },
+                      { name: "TaxOS Advanced Planning", legacy: false, citizen: true, sovereign: true },
+                      { name: "Smart Calendar (Recurring)", legacy: false, citizen: true, sovereign: true },
+                      { name: "Credit Card Maximizer", legacy: false, citizen: true, sovereign: true },
+                      { name: "WhatsApp/Telegram Bot", legacy: false, citizen: true, sovereign: true },
+                      { name: "Cross-Device Sync", legacy: false, citizen: true, sovereign: true },
+                      { name: "Document Vault (Encrypted)", legacy: false, citizen: true, sovereign: true },
+                      { name: "Priority Support", legacy: false, citizen: false, sovereign: true },
+                      { name: "Early Access Beta", legacy: false, citizen: false, sovereign: true },
+                    ].map((row, i) => (
+                      <tr key={i} className="hover:bg-zinc-900/50 transition-colors">
+                        <td className="p-4 text-zinc-300">{row.name}</td>
+                        <td className="p-4">
+                          {row.legacy ? <Check className="h-4 w-4 text-zinc-500" /> : <span className="text-zinc-700">-</span>}
+                        </td>
+                        <td className="p-4">
+                          {row.citizen ? <Check className="h-4 w-4 text-cyan-400" /> : <span className="text-zinc-700">-</span>}
+                        </td>
+                        <td className="p-4">
+                          {row.sovereign ? <Check className="h-4 w-4 text-purple-400" /> : <span className="text-zinc-700">-</span>}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
             </div>
           </div>
 

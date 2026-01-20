@@ -188,7 +188,7 @@ export default function Home() {
                 }}
               />
               <Link href="/oracle">
-                <Button size="md" className="bg-white text-black hover:bg-zinc-200 font-semibold px-6 rounded-xl shadow-[0_0_20px_rgba(255,255,255,0.3)]">
+                <Button size="md" className="bg-zinc-900 text-white hover:bg-zinc-800 font-semibold px-6 rounded-xl shadow-[0_0_20px_rgba(0,0,0,0.3)]">
                   Ask
                 </Button>
               </Link>
@@ -201,9 +201,9 @@ export default function Home() {
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.5 }}
-              className="mt-4 flex items-start gap-4 p-4 rounded-2xl bg-white/5 border border-white/5 backdrop-blur-sm"
+              className="mt-4 flex items-start gap-4 p-4 rounded-2xl bg-zinc-900/50 border border-zinc-800 backdrop-blur-sm"
             >
-              <div className="p-2 bg-zinc-900 rounded-lg border border-white/10 shrink-0">
+              <div className="p-2 bg-zinc-900 rounded-lg border border-zinc-800 shrink-0">
                 <Quote className="h-4 w-4 text-zinc-400" />
               </div>
               <div className="space-y-1">
@@ -226,7 +226,7 @@ export default function Home() {
            </div>
            <div className="relative z-10 mt-6 text-center space-y-2">
               <div className="text-sm font-medium text-white">{profile?.name}</div>
-              <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/5 border border-white/5 text-[10px] uppercase tracking-wider text-zinc-400">
+              <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-zinc-900/50 border border-zinc-800 text-[10px] uppercase tracking-wider text-zinc-400">
                 <Shield className="h-3 w-3 text-emerald-400" />
                 {profile?.riskProfile || "Balanced"} Profile
               </div>
@@ -328,7 +328,7 @@ export default function Home() {
                    </div>
                 </div>
                 <div className="mt-6">
-                   <Link href="/cards" className="block w-full py-2 rounded-lg bg-white/5 hover:bg-white/10 text-center text-xs font-medium text-white transition-colors border border-white/5">
+                   <Link href="/cards" className="block w-full py-2 rounded-lg bg-zinc-900 hover:bg-zinc-800 text-center text-xs font-medium text-white transition-colors border border-zinc-800">
                      Manage Cards
                    </Link>
                 </div>
@@ -365,7 +365,7 @@ export default function Home() {
                  <div className="text-sm text-zinc-500 py-2">No upcoming bills this week.</div>
                )}
                <div className="mt-6">
-                  <Link href="/calendar" className="block w-full py-2 rounded-lg bg-white/5 hover:bg-white/10 text-center text-xs font-medium text-white transition-colors border border-white/5">
+                  <Link href="/calendar" className="block w-full py-2 rounded-lg bg-zinc-900 hover:bg-zinc-800 text-center text-xs font-medium text-white transition-colors border border-zinc-800">
                     View Full Calendar
                   </Link>
                </div>
@@ -397,7 +397,7 @@ export default function Home() {
               <button
                 key={action.type}
                 onClick={() => setQuickAdd(action.type as QuickAddType)}
-                className="flex items-center gap-2 px-4 py-3 md:py-2 rounded-full bg-white/5 hover:bg-white/10 border border-white/5 text-sm md:text-xs font-medium text-white transition-colors whitespace-nowrap active:scale-95"
+                className="flex items-center gap-2 px-4 py-3 md:py-2 rounded-full bg-zinc-800 hover:bg-zinc-700 border border-zinc-700 text-sm md:text-xs font-medium text-white transition-colors whitespace-nowrap active:scale-95"
               >
                 <action.icon className="h-4 w-4 md:h-3 md:w-3" />
                 {action.label}

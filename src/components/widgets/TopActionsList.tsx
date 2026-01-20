@@ -64,7 +64,7 @@ export function TopActionsList() {
               >
                 <div className="space-y-3 text-sm text-zinc-600 dark:text-zinc-400">
                   <div>{action.whyThis}</div>
-                  <div className="rounded-xl bg-zinc-50 p-3 text-xs text-zinc-600 dark:bg-zinc-900">
+                  <div className="rounded-xl bg-zinc-900 p-3 text-xs text-zinc-400">
                     If you ignore this now: {action.consequence}
                   </div>
                 </div>

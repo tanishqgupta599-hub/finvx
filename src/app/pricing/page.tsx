@@ -214,7 +214,7 @@ export default function PricingPage() {
           <div className="overflow-hidden rounded-2xl border border-white/10 bg-zinc-900/30">
             <table className="w-full text-sm text-left">
               <thead>
-                <tr className="border-b border-white/10 bg-white/5">
+                <tr className="border-b border-white/10 bg-zinc-900/50">
                   <th className="p-4 font-medium text-zinc-400">Feature</th>
                   <th className="p-4 font-medium text-white">Legacy (Free)</th>
                   <th className="p-4 font-medium text-cyan-400">Citizen (Paid)</th>
@@ -238,7 +238,7 @@ export default function PricingPage() {
                   { name: "Priority Support", legacy: false, citizen: false, sovereign: true },
                   { name: "Early Access Beta", legacy: false, citizen: false, sovereign: true },
                 ].map((row, i) => (
-                  <tr key={i} className="hover:bg-white/5 transition-colors">
+                  <tr key={i} className="hover:bg-zinc-900/50 transition-colors">
                     <td className="p-4 text-zinc-300">{row.name}</td>
                     <td className="p-4">
                       {row.legacy ? <Check className="h-4 w-4 text-zinc-500" /> : <span className="text-zinc-700">-</span>}

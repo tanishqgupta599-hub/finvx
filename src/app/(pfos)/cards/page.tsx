@@ -444,7 +444,7 @@ export default function Cards() {
                   Light suggestions on how to turn points into calm value.
                 </div>
                 <div className="mt-3 grid gap-2 text-xs">
-                  <div className="rounded-xl bg-zinc-50 p-3 dark:bg-zinc-900">
+                  <div className="rounded-xl bg-zinc-900 p-3">
                     <div className="flex items-center justify-between">
                       <div>Statement credit</div>
                       <div className="text-emerald-600">Value score 8/10</div>
@@ -453,7 +453,7 @@ export default function Cards() {
                       Simple, flexible, and easy to understand. Great default if you are unsure.
                     </div>
                   </div>
-                  <div className="rounded-xl bg-zinc-50 p-3 dark:bg-zinc-900">
+                  <div className="rounded-xl bg-zinc-900 p-3">
                     <div className="flex items-center justify-between">
                       <div>Travel rewards</div>
                       <div className="text-amber-600">Value score 9/10</div>
@@ -462,7 +462,7 @@ export default function Cards() {
                       Best when you plan calmly in advance and can be flexible with dates.
                     </div>
                   </div>
-                  <div className="rounded-xl bg-zinc-50 p-3 dark:bg-zinc-900">
+                  <div className="rounded-xl bg-zinc-900 p-3">
                     <div className="flex items-center justify-between">
                       <div>Gift cards / catalog</div>
                       <div className="text-zinc-500">Value score 6/10</div>
@@ -505,7 +505,7 @@ export default function Cards() {
                   Get suggestion
                 </Button>
                 {recommendation && (
-                  <div className="rounded-xl bg-zinc-50 p-3 text-xs text-zinc-600 dark:bg-zinc-900">
+                  <div className="rounded-xl bg-zinc-900 p-3 text-xs text-zinc-400">
                     {recommendation}
                   </div>
                 )}
@@ -526,62 +526,29 @@ export default function Cards() {
               ) : (
                 <div className="mt-3 space-y-3 text-sm">
                   <div>
-                    <div className="text-xs uppercase tracking-wide text-zinc-500">
-                      Focus card
-                    </div>
-                    <div className="mt-1 text-base font-medium">
-                      {selectedCard.brand.toUpperCase()} •••• {selectedCard.last4}
-                    </div>
-                    {selectedCard.rewardProgram && (
-                      <div className="mt-1 text-xs text-zinc-500">
-                        {selectedCard.rewardProgram}
-                      </div>
-                    )}
-                  </div>
-                  <div className="rounded-xl bg-zinc-50 p-3 text-xs dark:bg-zinc-900">
-                    <div className="font-medium">Credit Status</div>
-                    <div className="mt-2 grid grid-cols-2 gap-2">
-                      <div>
-                        <div className="text-[10px] uppercase text-zinc-500">Available</div>
-                        <div className="font-semibold text-emerald-600">
-                          ₹{(selectedCard.limit - selectedCard.balance).toLocaleString("en-IN")}
-                        </div>
-                      </div>
-                      <div>
-                        <div className="text-[10px] uppercase text-zinc-500">Used</div>
-                        <div className="font-semibold text-rose-600">
-                          ₹{selectedCard.balance.toLocaleString("en-IN")}
-                        </div>
-                      </div>
-                    </div>
-                    <div className="mt-2 text-[10px] text-zinc-400">
-                      Limit: ₹{selectedCard.limit.toLocaleString("en-IN")}
+                    <div className="text-xs text-zinc-500">Brand</div>
+                    <div className="font-medium capitalize">
+                      {selectedCard.brand}
                     </div>
                   </div>
-                  <div className="rounded-xl bg-zinc-50 p-3 text-xs dark:bg-zinc-900">
-                    <div className="font-medium">Earn rates (placeholder)</div>
-                    <div className="mt-1 text-zinc-500">
-                      Groceries / essentials: 2x points · Online spends: 1.5x ·
-                      Other: 1x. Adjust in the future to match your real card.
+                  <div>
+                    <div className="text-xs text-zinc-500">Reward program</div>
+                    <div className="font-medium">
+                      {selectedCard.rewardProgram || "Standard"}
                     </div>
                   </div>
-                  <div className="rounded-xl bg-zinc-50 p-3 text-xs dark:bg-zinc-900">
-                    <div className="font-medium">Fee vs benefit</div>
-                    <div className="mt-1 text-zinc-500">
-                      Annual fee{" "}
+                  <div>
+                    <div className="text-xs text-zinc-500">Annual fee</div>
+                    <div className="font-medium">
                       {selectedCard.annualFee
                         ? `₹${selectedCard.annualFee.toLocaleString("en-IN")}`
-                        : "not set"}{" "}
-                      vs points and perks you actually use. If this card does not
-                      feel cosy, it is okay to downshift later.
+                        : "None"}
                     </div>
                   </div>
-                  <div className="rounded-xl bg-zinc-50 p-3 text-xs dark:bg-zinc-900">
-                    <div className="font-medium">Close or keep?</div>
-                    <div className="mt-1 text-zinc-500">
-                      Heavy annual fee with low usage and high utilisation is a
-                      clue to slowly step away. Old, no-fee cards gently help
-                      your credit history when managed well.
+                  <div>
+                    <div className="text-xs text-zinc-500">APR (Interest)</div>
+                    <div className="font-medium">
+                      {selectedCard.apr ? `${selectedCard.apr}%` : "Unknown"}
                     </div>
                   </div>
                 </div>
@@ -600,28 +567,25 @@ export default function Cards() {
           <Select
             value={cardForm.brand}
             onChange={(v) =>
-              setCardForm((f) => ({
-                ...f,
-                brand: v as CreditCardModel["brand"],
-              }))
+              setCardForm((f) => ({ ...f, brand: v as CreditCardModel["brand"] }))
             }
           >
             <option value="visa">Visa</option>
             <option value="mastercard">Mastercard</option>
-            <option value="amex">American Express</option>
-            <option value="discover">Discover</option>
-            <option value="other">Other</option>
+            <option value="amex">Amex</option>
+            <option value="rupay">Rupay</option>
+            <option value="diners">Diners</option>
           </Select>
           <Input
             placeholder="Last 4 digits"
             maxLength={4}
             value={cardForm.last4}
             onChange={(e) =>
-              setCardForm((f) => ({ ...f, last4: e.target.value.replace(/\D/g, "") }))
+              setCardForm((f) => ({ ...f, last4: e.target.value }))
             }
           />
           <Input
-            placeholder="Total Credit Limit"
+            placeholder="Total Limit"
             inputMode="decimal"
             value={cardForm.limit}
             onChange={(e) =>
@@ -629,7 +593,7 @@ export default function Cards() {
             }
           />
           <Input
-            placeholder="Current Used Balance (Debt)"
+            placeholder="Current Balance"
             inputMode="decimal"
             value={cardForm.balance}
             onChange={(e) =>
@@ -637,13 +601,7 @@ export default function Cards() {
             }
           />
           <Input
-            placeholder="APR % (optional)"
-            inputMode="decimal"
-            value={cardForm.apr}
-            onChange={(e) => setCardForm((f) => ({ ...f, apr: e.target.value }))}
-          />
-          <Input
-            placeholder="Points balance (optional)"
+            placeholder="Reward Points Balance"
             inputMode="decimal"
             value={cardForm.pointsBalance}
             onChange={(e) =>
@@ -651,7 +609,7 @@ export default function Cards() {
             }
           />
           <div className="space-y-1">
-            <div className="text-xs text-zinc-500 px-1">Next statement date</div>
+            <div className="text-xs text-zinc-500 px-1">Next Bill Date</div>
             <Input
               type="date"
               value={cardForm.nextBillDate}
@@ -661,7 +619,7 @@ export default function Cards() {
             />
           </div>
           <Input
-            placeholder="Annual fee (optional)"
+            placeholder="Annual Fee (optional)"
             inputMode="decimal"
             value={cardForm.annualFee}
             onChange={(e) =>
@@ -669,7 +627,7 @@ export default function Cards() {
             }
           />
           <Input
-            placeholder="Reward program name (optional)"
+            placeholder="Reward Program Name (optional)"
             value={cardForm.rewardProgram}
             onChange={(e) =>
               setCardForm((f) => ({ ...f, rewardProgram: e.target.value }))

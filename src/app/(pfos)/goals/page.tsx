@@ -209,19 +209,19 @@ export default function Goals() {
           </div>
           {hasGoals ? (
             <div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-3">
-              <div className="rounded-2xl bg-zinc-50 p-4 text-sm dark:bg-zinc-900">
+              <div className="rounded-2xl bg-zinc-900 p-4 text-sm">
                 <div className="text-xs text-zinc-500">Total target</div>
                 <div className="mt-1 text-lg font-semibold">
                   ₹{totalGoalTarget.toLocaleString("en-IN")}
                 </div>
               </div>
-              <div className="rounded-2xl bg-zinc-50 p-4 text-sm dark:bg-zinc-900">
+              <div className="rounded-2xl bg-zinc-900 p-4 text-sm">
                 <div className="text-xs text-zinc-500">Saved so far</div>
                 <div className="mt-1 text-lg font-semibold">
                   ₹{totalGoalProgress.toLocaleString("en-IN")}
                 </div>
               </div>
-              <div className="rounded-2xl bg-zinc-50 p-4 text-sm dark:bg-zinc-900">
+              <div className="rounded-2xl bg-zinc-900 p-4 text-sm">
                 <div className="text-xs text-zinc-500">Freedom score</div>
                 <div className="mt-1 text-lg font-semibold">
                   {freedomScore}/100
@@ -365,14 +365,14 @@ export default function Goals() {
                 commitments. It is not a verdict, just a compass.
               </div>
               <div className="mt-3 grid gap-2 text-xs">
-                <div className="rounded-xl bg-zinc-50 p-3 dark:bg-zinc-900">
+                <div className="rounded-xl bg-zinc-900 p-3">
                   <div className="font-medium">Buffers</div>
                   <div className="mt-1 text-zinc-500">
                     Emergency fund and low-debt levels move this score more than
                     fancy investments.
                   </div>
                 </div>
-                <div className="rounded-xl bg-zinc-50 p-3 dark:bg-zinc-900">
+                <div className="rounded-xl bg-zinc-900 p-3">
                   <div className="font-medium">Goal mix</div>
                   <div className="mt-1 text-zinc-500">
                     A few clear goals beaten slowly are better than many
@@ -424,7 +424,7 @@ export default function Goals() {
                 {scenarioSummary.adjustments.map((adj) => (
                   <div
                     key={adj}
-                    className="rounded-xl bg-zinc-50 p-3 dark:bg-zinc-900"
+                    className="rounded-xl bg-zinc-900 p-3"
                   >
                     {adj}
                   </div>
@@ -519,7 +519,7 @@ export default function Goals() {
           >
             <option value="low">Low priority</option>
             <option value="medium">Medium</option>
-            <option value="high">High</option>
+            <option value="high">High priority</option>
           </Select>
           <Button className="w-full" onClick={saveGoal}>
             Save

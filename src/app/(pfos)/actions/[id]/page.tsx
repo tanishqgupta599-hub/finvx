@@ -42,7 +42,7 @@ export default function ActionDetail() {
       >
         Back to home
       </Link>
-      <Card className="bg-gradient-to-br from-white to-zinc-50 dark:from-zinc-950 dark:to-zinc-900">
+      <Card className="bg-gradient-to-br from-zinc-900 to-zinc-950">
         <CardContent>
           <div className="flex items-center justify-between gap-3">
             <div>
@@ -77,7 +77,7 @@ export default function ActionDetail() {
               {action.steps.map((step) => (
                 <div
                   key={step.id}
-                  className="flex items-center justify-between rounded-2xl bg-zinc-50 px-3 py-2 text-sm dark:bg-zinc-900"
+                  className="flex items-center justify-between rounded-2xl bg-zinc-900 px-3 py-2 text-sm"
                 >
                   <div className={step.done ? "text-zinc-400 line-through" : ""}>{step.label}</div>
                   <Button

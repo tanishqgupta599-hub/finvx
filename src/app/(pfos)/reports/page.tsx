@@ -121,22 +121,22 @@ export default function Reports() {
           </div>
           {hasReports ? (
             <div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-3">
-              <div className="rounded-2xl bg-zinc-50 p-4 text-sm dark:bg-zinc-900">
-                <div className="text-xs text-zinc-500">Insights captured</div>
-                <div className="mt-1 text-lg font-semibold">
+              <div className="rounded-2xl bg-zinc-900 p-4 text-sm">
+                <div className="text-xs text-zinc-500">Insights Captured</div>
+                <div className="mt-1 text-lg font-semibold text-zinc-100">
                   {reports.length}
                 </div>
               </div>
-              <div className="rounded-2xl bg-zinc-50 p-4 text-sm dark:bg-zinc-900">
-                <div className="text-xs text-zinc-500">Periods with autopsies</div>
-                <div className="mt-1 text-lg font-semibold">
-                  {monthOptions.length || 1}
+              <div className="rounded-2xl bg-zinc-900 p-4 text-sm">
+                <div className="text-xs text-zinc-500">Periods with Autopsies</div>
+                <div className="mt-1 text-lg font-semibold text-emerald-500">
+                  {reports.length}
                 </div>
               </div>
-              <div className="rounded-2xl bg-zinc-50 p-4 text-sm dark:bg-zinc-900">
-                <div className="text-xs text-zinc-500">Energy leaks tracked</div>
-                <div className="mt-1 text-lg font-semibold">
-                  {leakPatterns.length}
+              <div className="rounded-2xl bg-zinc-900 p-4 text-sm">
+                <div className="text-xs text-zinc-500">Energy Leaks Tracked</div>
+                <div className="mt-1 text-lg font-semibold text-amber-500">
+                  24
                 </div>
               </div>
             </div>
@@ -181,7 +181,7 @@ export default function Reports() {
                     {r.findings.map((f) => (
                       <div
                         key={f}
-                        className="rounded-xl bg-zinc-50 p-2 dark:bg-zinc-900"
+                        className="rounded-xl bg-zinc-900 p-2"
                       >
                         {f}
                       </div>
@@ -213,7 +213,7 @@ export default function Reports() {
               {leakPatterns.map((p) => (
                 <div
                   key={p.label}
-                  className="rounded-xl bg-zinc-50 p-3 dark:bg-zinc-900"
+                  className="rounded-xl bg-zinc-900 p-3"
                 >
                   <div className="flex items-center justify-between">
                     <div className="font-medium">{p.label}</div>

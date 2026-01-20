@@ -10,14 +10,14 @@ export function Tabs({ value, onValueChange, children }: { value?: string; onVal
 }
 
 export function TabsList({ children }: { children: React.ReactNode }) {
-  return <TabsPrimitive.List className="flex gap-2 rounded-xl bg-zinc-100 p-1 dark:bg-zinc-800">{children}</TabsPrimitive.List>;
+  return <TabsPrimitive.List className="flex gap-2 rounded-xl bg-zinc-800 p-1">{children}</TabsPrimitive.List>;
 }
 
 export function TabsTrigger({ value, children }: { value: string; children: React.ReactNode }) {
   return (
     <TabsPrimitive.Trigger
       value={value}
-      className="rounded-lg px-3 py-1 text-sm data-[state=active]:bg-white data-[state=active]:shadow-sm dark:data-[state=active]:bg-zinc-900"
+      className="rounded-lg px-3 py-1 text-sm data-[state=active]:bg-zinc-900 data-[state=active]:shadow-sm"
     >
       {children}
     </TabsPrimitive.Trigger>
