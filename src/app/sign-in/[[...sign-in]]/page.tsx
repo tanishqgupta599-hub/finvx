@@ -1,5 +1,8 @@
+"use client";
+
 import { SignIn } from "@clerk/nextjs";
 import { Sparkles, ShieldCheck, Wallet } from "lucide-react";
+import { motion } from "framer-motion";
 
 export default function Page() {
   return (
@@ -7,54 +10,105 @@ export default function Page() {
       {/* Left Panel - Branding & Creative */}
       <div className="relative hidden w-1/2 flex-col justify-between bg-zinc-900 p-12 lg:flex">
         <div className="absolute inset-0 overflow-hidden">
-          <div className="absolute -left-[20%] -top-[20%] h-[500px] w-[500px] rounded-full bg-emerald-500/10 blur-3xl" />
-          <div className="absolute -bottom-[20%] -right-[20%] h-[500px] w-[500px] rounded-full bg-blue-500/10 blur-3xl" />
+          <motion.div 
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 1.5 }}
+            className="absolute -left-[20%] -top-[20%] h-[500px] w-[500px] rounded-full bg-emerald-500/10 blur-3xl" 
+          />
+          <motion.div 
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 1.5, delay: 0.5 }}
+            className="absolute -bottom-[20%] -right-[20%] h-[500px] w-[500px] rounded-full bg-blue-500/10 blur-3xl" 
+          />
         </div>
 
-        <div className="relative z-10">
+        <motion.div 
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.8 }}
+          className="relative z-10"
+        >
           <div className="flex items-center gap-2 text-2xl font-bold text-emerald-500">
             <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-emerald-500/20">
               <Sparkles className="h-5 w-5" />
             </div>
             Finvx
           </div>
-        </div>
+        </motion.div>
 
         <div className="relative z-10 space-y-6">
-          <h1 className="text-4xl font-bold leading-tight tracking-tight text-white xl:text-5xl">
+          <motion.h1 
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8, delay: 0.2 }}
+            className="text-4xl font-bold leading-tight tracking-tight text-white xl:text-5xl"
+          >
             Your Financial Universe <br />
             <span className="text-emerald-500">Reimagined.</span>
-          </h1>
-          <p className="text-lg text-zinc-400">
+          </motion.h1>
+          <motion.p 
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8, delay: 0.3 }}
+            className="text-lg text-zinc-400"
+          >
             Manage your wealth, track expenses, and plan your future with the most advanced financial dashboard.
-          </p>
+          </motion.p>
 
           <div className="grid grid-cols-2 gap-4 pt-8">
-            <div className="rounded-xl border border-zinc-800 bg-zinc-950/50 p-4 backdrop-blur">
+            <motion.div 
+              initial={{ opacity: 0, x: -20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.8, delay: 0.4 }}
+              className="rounded-xl border border-zinc-800 bg-zinc-950/50 p-4 backdrop-blur"
+            >
               <ShieldCheck className="mb-3 h-6 w-6 text-emerald-500" />
               <div className="font-semibold">Bank-Grade Security</div>
               <div className="text-xs text-zinc-500">Your data is encrypted and safe.</div>
-            </div>
-            <div className="rounded-xl border border-zinc-800 bg-zinc-950/50 p-4 backdrop-blur">
+            </motion.div>
+            <motion.div 
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.8, delay: 0.5 }}
+              className="rounded-xl border border-zinc-800 bg-zinc-950/50 p-4 backdrop-blur"
+            >
               <Wallet className="mb-3 h-6 w-6 text-blue-500" />
               <div className="font-semibold">Smart Tracking</div>
               <div className="text-xs text-zinc-500">AI-powered insights for your wallet.</div>
-            </div>
+            </motion.div>
           </div>
         </div>
 
-        <div className="relative z-10 text-xs text-zinc-500">
+        <motion.div 
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.8, delay: 0.8 }}
+          className="relative z-10 text-xs text-zinc-500"
+        >
           © {new Date().getFullYear()} Finvx. All rights reserved.
-        </div>
+        </motion.div>
       </div>
 
       {/* Right Panel - Auth Form */}
       <div className="flex w-full flex-col items-center justify-center p-8 lg:w-1/2">
-        <div className="mb-8 flex items-center gap-2 text-2xl font-bold text-emerald-500 lg:hidden">
+        <motion.div 
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.8 }}
+          className="mb-8 flex items-center gap-2 text-2xl font-bold text-emerald-500 lg:hidden"
+        >
           <Sparkles className="h-6 w-6" />
           Finvx
-        </div>
-        <SignIn />
+        </motion.div>
+        <motion.div
+          initial={{ opacity: 0, scale: 0.95 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ duration: 0.5, delay: 0.2 }}
+        >
+          <SignIn />
+        </motion.div>
       </div>
     </div>
   );

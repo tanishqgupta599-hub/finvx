@@ -38,13 +38,17 @@ export default function RootLayout({
           colorTextSecondary: "#a1a1aa", // Zinc-400
         },
         elements: {
-          card: "bg-zinc-900 border border-zinc-800 shadow-xl",
+          card: "bg-zinc-900 border border-zinc-800 shadow-2xl",
           headerTitle: "text-white",
           headerSubtitle: "text-zinc-400",
           socialButtonsBlockButton: "bg-zinc-800 border-zinc-700 hover:bg-zinc-700 text-white",
           socialButtonsBlockButtonText: "text-white",
           formButtonPrimary: "bg-emerald-500 hover:bg-emerald-600 text-white",
           footerActionLink: "text-emerald-500 hover:text-emerald-400",
+          userButtonPopoverCard: "bg-zinc-900 border border-zinc-800 shadow-2xl",
+          userPreviewMainIdentifier: "text-white font-semibold",
+          userPreviewSecondaryIdentifier: "text-zinc-400",
+          userButtonTrigger: "focus:shadow-none",
         },
       }}
     >
