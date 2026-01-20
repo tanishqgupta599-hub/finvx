@@ -558,7 +558,7 @@ export default function Home() {
                 onChange={(e) => setForm({ ...form, limit: e.target.value })}
               />
               <Input
-                placeholder="Current Balance"
+                placeholder="Limit Utilized"
                 type="number"
                 value={form.balance || ""}
                 onChange={(e) => setForm({ ...form, balance: e.target.value })}

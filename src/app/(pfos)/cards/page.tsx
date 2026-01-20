@@ -158,7 +158,7 @@ export default function Cards() {
     const billAmount = cardForm.billAmount ? Number(cardForm.billAmount) : undefined;
     
     if ([limit, balance].some((n) => Number.isNaN(n))) {
-      toast.error("Limit and balance must be numbers");
+      toast.error("Limit and limit utilized must be numbers");
       return;
     }
     if (
