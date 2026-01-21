@@ -32,8 +32,6 @@ export function TaxOptimizationPanel() {
     setSections(sectionsWithUsage);
   }, [taxProfile]);
 
-  if (!taxProfile) return null;
-
   return (
     <div className="rounded-3xl border border-white/5 bg-slate-950/50 p-6 backdrop-blur-sm">
       <div className="mb-6 flex items-center justify-between">

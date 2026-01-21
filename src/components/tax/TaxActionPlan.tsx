@@ -9,7 +9,29 @@ export function TaxActionPlan() {
   const plan = useAppStore((s) => s.taxActionPlan);
   const toggleStep = useAppStore((s) => s.toggleTaxActionStep);
 
-  if (!plan) return null;
+  // Fallback empty state if no plan exists
+  if (!plan) {
+    return (
+      <div className="space-y-6 rounded-3xl border border-white/5 bg-slate-950/50 p-6 backdrop-blur-sm">
+        <div className="flex items-start justify-between">
+          <div>
+            <div className="flex items-center gap-2">
+              <h2 className="text-xl font-bold text-white">AI Tax Strategy</h2>
+              <Sparkles className="h-4 w-4 text-purple-400" />
+            </div>
+            <p className="text-xs text-zinc-500">Tailored for your portfolio</p>
+          </div>
+        </div>
+        <div className="flex flex-col items-center justify-center py-8 text-center">
+          <Sparkles className="mb-3 h-10 w-10 text-zinc-700" />
+          <p className="text-sm text-zinc-400">No tax strategy generated yet.</p>
+          <button className="mt-4 rounded-full bg-white/10 px-4 py-2 text-xs font-medium text-white hover:bg-white/20">
+            Generate Plan
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6 rounded-3xl border border-white/5 bg-slate-950/50 p-6 backdrop-blur-sm">

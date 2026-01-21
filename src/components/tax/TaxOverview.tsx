@@ -63,8 +63,6 @@ export function TaxOverview() {
     setBreakdown(calculation);
   }, [taxProfile, assets, profile?.incomeStreams]);
 
-  if (!taxProfile) return null;
-
   return (
     <div className="space-y-6">
       {/* Main Stats Card */}
