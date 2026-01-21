@@ -53,7 +53,7 @@ export async function POST(request: Request) {
   } catch (error) {
     console.error("Error creating credit card:", error);
     return NextResponse.json(
-      { error: "Internal Server Error" },
+      { error: `Internal Server Error: ${error instanceof Error ? error.message : String(error)}` },
       { status: 500 }
     );
   }
