@@ -298,10 +298,38 @@ export const useAppStore = create<AppState & AppActions>((set, get) => ({
     set((s) => ({
       loans: s.loans.map((l) => (l.id === loan.id ? loan : l)),
     })),
-  addLiability: (liability) =>
+  addLiability: async (liability) => {
     set((s) => ({
       liabilities: [...s.liabilities, liability],
-    })),
+    }));
+    try {
+      const response = await fetch("/api/liabilities", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(liability),
+      });
+      if (response.ok) {
+        const savedLiability = await response.json();
+        set((s) => ({
+          liabilities: s.liabilities.map((l) => (l.id === liability.id ? { ...savedLiability, balance: Number(savedLiability.balance), apr: savedLiability.apr ? Number(savedLiability.apr) : undefined } : l)),
+        }));
+        toast.success("Liability saved successfully");
+      } else {
+        const errorData = await response.json();
+        console.error("Failed to save liability:", errorData);
+        toast.error(`Failed to save liability: ${errorData.error || "Unknown error"}`);
+        set((s) => ({
+          liabilities: s.liabilities.filter((l) => l.id !== liability.id),
+        }));
+      }
+    } catch (error) {
+      console.error("Failed to save liability:", error);
+      toast.error("Failed to save liability. Check connection.");
+      set((s) => ({
+        liabilities: s.liabilities.filter((l) => l.id !== liability.id),
+      }));
+    }
+  },
   updateLiability: (liability) =>
     set((s) => ({
       liabilities: s.liabilities.map((l) => (l.id === liability.id ? liability : l)),
