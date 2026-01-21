@@ -115,7 +115,7 @@ export const useAppStore = create<AppState & AppActions>((set, get) => ({
     reminders: true,
   },
   feedback: [],
-  taxProfile: demoTaxProfile(),
+  taxProfile: undefined,
   taxLots: [],
   taxActionPlan: undefined,
   circles: [],

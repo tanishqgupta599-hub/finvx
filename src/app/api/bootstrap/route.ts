@@ -51,7 +51,29 @@ export async function GET() {
     });
 
     if (!dbUser) {
-      return NextResponse.json({ error: "User not found" }, { status: 404 });
+      // If user not found in DB but authenticated, return empty state instead of 404
+      // This allows the frontend to initialize with clean state while waiting for sync
+      return NextResponse.json({
+        clerkId: user.id,
+        email: user.emailAddresses[0]?.emailAddress,
+        name: `${user.firstName || ""} ${user.lastName || ""}`.trim(),
+        assets: [],
+        loans: [],
+        liabilities: [],
+        transactions: [],
+        subscriptions: [],
+        creditCards: [],
+        insurancePolicies: [],
+        goals: [],
+        calendarEvents: [],
+        friends: [],
+        circles: [],
+        actionItems: [],
+        scamChecks: [],
+        autopsyReports: [],
+        emergencyContacts: [],
+        vaultDocuments: [],
+      });
     }
 
     return NextResponse.json(dbUser);
