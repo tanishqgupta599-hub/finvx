@@ -43,6 +43,7 @@ export function NetWorthSummaryCard() {
   const totalAssets = assets.reduce((a, b) => a + b.value, 0);
   const totalDebt = loans.reduce((a, b) => a + b.balance, 0);
   const totalLiabilities = liabilities.reduce((a, b) => a + b.balance, 0);
+  // Calculate total credit card debt to include in net worth
   const totalCreditCardDebt = creditCards.reduce((a, b) => a + b.balance, 0);
   const netWorth = totalAssets - (totalDebt + totalLiabilities + totalCreditCardDebt);
 
