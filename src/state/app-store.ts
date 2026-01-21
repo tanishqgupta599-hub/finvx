@@ -51,7 +51,7 @@ type AppActions = {
   removeAsset: (id: string) => void;
   addLoan: (loan: Loan) => Promise<void>;
   updateLoan: (loan: Loan) => void;
-  addLiability: (liability: Liability) => void;
+  addLiability: (liability: Liability) => Promise<void>;
   updateLiability: (liability: Liability) => void;
   addExpense: (transaction: Transaction, paymentSource: { type: 'asset' | 'creditCard', id: string }) => Promise<void>;
   addTransaction: (transaction: Transaction) => Promise<void>;
@@ -91,7 +91,7 @@ export const useAppStore = create<AppState & AppActions>((set, get) => ({
   profile: demoProfile(),
   profileMode: "Balanced",
   overwhelmMode: false,
-  demoDataEnabled: true, // Default to true until we fetch real data
+  demoDataEnabled: false, // Default to false for production
   isLoading: false,
   featureFlags: defaultFeatureFlags,
   onboardingCompleted: false,
