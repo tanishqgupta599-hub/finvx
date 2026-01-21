@@ -41,7 +41,8 @@ export default function NetWorth() {
   const totalAssets = assets.reduce((a, b) => a + b.value, 0);
   const totalDebt = loans.reduce((a, b) => a + b.balance, 0);
   const totalLiabilities = liabilities.reduce((a, b) => a + b.balance, 0);
-  const netWorth = totalAssets - (totalDebt + totalLiabilities);
+  const totalCreditCardDebt = creditCards.reduce((a, b) => a + b.balance, 0);
+  const netWorth = totalAssets - (totalDebt + totalLiabilities + totalCreditCardDebt);
   const liquidAssets = assets.filter((a) => a.type === "cash").reduce((a, b) => a + b.value, 0);
   const liquidityRatio = totalAssets ? Math.round((liquidAssets / totalAssets) * 100) : 0;
 

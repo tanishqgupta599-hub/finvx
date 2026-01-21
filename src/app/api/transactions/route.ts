@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { currentUser } from "@clerk/nextjs/server";
 import prisma from "@/lib/db";
-import { TransactionCategory } from "@/generated/prisma";
+import { TransactionCategory } from "@prisma/client";
 
 export async function POST(request: Request) {
   const user = await currentUser();

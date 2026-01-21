@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { currentUser } from "@clerk/nextjs/server";
 import prisma from "@/lib/db";
-import { AssetType } from "@/generated/prisma";
+import { AssetType } from "@prisma/client";
 
 export async function POST(request: Request) {
   const user = await currentUser();

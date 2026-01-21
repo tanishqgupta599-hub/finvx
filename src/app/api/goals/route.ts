@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { currentUser } from "@clerk/nextjs/server";
 import prisma from "@/lib/db";
-import { GoalType, GoalPriority } from "@/generated/prisma";
+import { GoalType, GoalPriority } from "@prisma/client";
 
 export const dynamic = "force-dynamic";
 
