@@ -147,6 +147,7 @@ export const useAppStore = create<AppState & AppActions>((set, get) => ({
           vaultDocuments: data.vaultDocuments || [],
           friends: data.friends || [],
           circles: data.circles || [],
+          taxProfile: data.taxProfile, // Load tax profile
           demoDataEnabled: false, 
         });
       }

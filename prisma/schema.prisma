@@ -99,6 +99,25 @@ enum PolicyType {
   other
 }
 
+enum TaxRegime {
+  old
+  new
+  none
+}
+
+enum TaxJurisdiction {
+  IN
+  UAE
+  US
+  UK
+}
+
+enum FilingStatus {
+  individual
+  huf
+  company
+}
+
 enum GoalType {
   retirement
   emergency
@@ -184,6 +203,22 @@ model User {
   friends         Friend[]
   circles         ExpenseCircle[]   @relation("UserCircles")
   ownedCircles    ExpenseCircle[]   @relation("CircleOwner")
+  
+  taxProfile      TaxProfile?
+}
+
+model TaxProfile {
+  id              String          @id @default(cuid())
+  userId          String          @unique
+  user            User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  jurisdiction    TaxJurisdiction @default(IN)
+  regime          TaxRegime       @default(new)
+  pan             String?
+  fiscalYearStart String          @default("2024-04-01")
+  filingStatus    FilingStatus    @default(individual)
+  
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
 }
 
 model IncomeStream {

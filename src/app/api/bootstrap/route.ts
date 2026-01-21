@@ -46,7 +46,8 @@ export async function GET() {
             expenses: true,
             members: true,
           }
-        }
+        },
+        taxProfile: true,
       },
     });
 
@@ -73,10 +74,31 @@ export async function GET() {
         autopsyReports: [],
         emergencyContacts: [],
         vaultDocuments: [],
+        // Default tax profile for new users so the page renders
+        taxProfile: {
+          jurisdiction: "IN",
+          regime: "new",
+          fiscalYearStart: "2024-04-01",
+          filingStatus: "individual"
+        }
       });
     }
 
-    return NextResponse.json(dbUser);
+    // Ensure taxProfile exists in the response even if null in DB (though we should probably upsert it elsewhere)
+    // For now, let's just return what we have. If null, the UI might still hide it.
+    // Better strategy: If dbUser.taxProfile is null, inject a default structure in the response
+    // so the UI doesn't break/hide.
+    const responseData = {
+      ...dbUser,
+      taxProfile: dbUser.taxProfile || {
+        jurisdiction: "IN",
+        regime: "new",
+        fiscalYearStart: "2024-04-01",
+        filingStatus: "individual"
+      }
+    };
+
+    return NextResponse.json(responseData);
   } catch (error) {
     console.error("Error fetching bootstrap data:", error);
     return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
