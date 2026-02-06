@@ -1,0 +1,268 @@
+// Schema extensions for Finance OS features
+// Add these to your main schema.prisma file
+
+enum InvestmentType {
+  stock
+  mutual_fund
+  etf
+  bond
+  gold
+  fixed_deposit
+  other
+}
+
+enum PropertyType {
+  residential
+  commercial
+  land
+  fractional
+}
+
+enum BankAccountStatus {
+  active
+  inactive
+  pending
+  error
+}
+
+enum SyncFrequency {
+  daily
+  weekly
+  monthly
+  manual
+}
+
+// Investment Holdings
+model Investment {
+  id              String          @id @default(cuid())
+  userId          String
+  user            User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  name            String
+  type            InvestmentType
+  symbol          String?         // For stocks, ETFs
+  quantity        Float
+  purchasePrice   Float
+  currentPrice    Float?
+  purchaseDate    DateTime
+  currentValue    Float           // Calculated: quantity * currentPrice
+  totalInvested   Float           // Total amount invested
+  totalReturns    Float           // Current value - Total invested
+  xirr            Float?         // Calculated XIRR
+  isSIP           Boolean         @default(false)
+  sipAmount       Float?
+  sipFrequency    Frequency?
+  institution     String?         // Broker/platform name
+  metadata        Json?           // Additional data
+  
+  transactions    InvestmentTransaction[]
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+}
+
+model InvestmentTransaction {
+  id              String      @id @default(cuid())
+  investmentId    String
+  investment      Investment   @relation(fields: [investmentId], references: [id], onDelete: Cascade)
+  type            String      // buy, sell, dividend, bonus, split
+  quantity        Float
+  price           Float
+  amount          Float
+  date            DateTime
+  fees            Float?      @default(0)
+  notes           String?
+  createdAt       DateTime    @default(now())
+  updatedAt       DateTime    @updatedAt
+}
+
+// Real Estate / Property
+model Property {
+  id              String          @id @default(cuid())
+  userId          String
+  user            User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  name            String
+  type            PropertyType
+  address         String?
+  purchasePrice   Float
+  currentValue    Float?
+  purchaseDate    DateTime
+  isFractional    Boolean         @default(false)
+  ownershipPercentage Float?     // For fractional ownership
+  monthlyRent     Float?
+  annualROI       Float?         // Calculated ROI
+  metadata        Json?
+  
+  rentalIncome    RentalIncome[]
+  expenses        PropertyExpense[]
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+}
+
+model RentalIncome {
+  id              String      @id @default(cuid())
+  propertyId      String
+  property        Property    @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+  amount          Float
+  date            DateTime
+  tenant          String?
+  notes           String?
+  createdAt       DateTime    @default(now())
+  updatedAt       DateTime    @updatedAt
+}
+
+model PropertyExpense {
+  id              String      @id @default(cuid())
+  propertyId      String
+  property        Property    @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+  description     String
+  amount          Float
+  category        String      // maintenance, tax, insurance, etc.
+  date            DateTime
+  createdAt       DateTime    @default(now())
+  updatedAt       DateTime    @updatedAt
+}
+
+// Bank Account Connections
+model BankAccount {
+  id              String          @id @default(cuid())
+  userId          String
+  user            User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  bankName        String
+  accountNumber   String?         // Last 4 digits or masked
+  accountType     String          // savings, checking, current
+  balance         Float           @default(0)
+  currency        String          @default("INR")
+  status          BankAccountStatus @default(pending)
+  
+  // Auto-sync settings
+  isAutoSync      Boolean         @default(false)
+  syncFrequency   SyncFrequency?  @default(manual)
+  lastSyncedAt    DateTime?
+  provider        String?         // plaid, yodlee, manual
+  providerAccountId String?      // External account ID
+  
+  transactions    BankTransaction[]
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+}
+
+model BankTransaction {
+  id              String          @id @default(cuid())
+  bankAccountId   String
+  bankAccount     BankAccount     @relation(fields: [bankAccountId], references: [id], onDelete: Cascade)
+  transactionId   String?         // External transaction ID
+  amount          Float
+  type            String          // credit, debit
+  description     String
+  category        String?
+  date            DateTime
+  balance         Float?          // Balance after transaction
+  merchant        String?
+  metadata        Json?
+  isProcessed     Boolean         @default(false)
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+  
+  @@unique([bankAccountId, transactionId])
+  @@index([bankAccountId, date])
+}
+
+// Credit Score Tracking
+model CreditScore {
+  id              String      @id @default(cuid())
+  userId          String
+  user            User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  score           Int
+  provider        String      // cibil, experian, equifax
+  reportDate      DateTime
+  factors         Json?       // Factors affecting score
+  history         Json?       // Historical scores
+  createdAt       DateTime    @default(now())
+  updatedAt       DateTime    @updatedAt
+  
+  @@index([userId, reportDate])
+}
+
+// Business Mode
+enum BusinessType {
+  sole_proprietorship
+  partnership
+  llc
+  corporation
+  other
+}
+
+model BusinessProfile {
+  id              String          @id @default(cuid())
+  userId          String
+  user            User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  name            String
+  type            BusinessType
+  taxId           String?         // GST, EIN, etc.
+  registrationNumber String?
+  isActive        Boolean         @default(true)
+  
+  expenses        BusinessExpense[]
+  vendors         Vendor[]
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+}
+
+model BusinessExpense {
+  id              String          @id @default(cuid())
+  businessId      String
+  business        BusinessProfile @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  description     String
+  amount          Float
+  category        String
+  vendorId        String?
+  vendor          Vendor?         @relation(fields: [vendorId], references: [id])
+  date            DateTime
+  receiptUrl      String?
+  isTaxDeductible Boolean         @default(false)
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+}
+
+model Vendor {
+  id              String          @id @default(cuid())
+  businessId      String
+  business        BusinessProfile @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  name            String
+  contact         String?
+  email           String?
+  gstNumber       String?
+  address         String?
+  expenses        BusinessExpense[]
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+}
+
+// AI Copilot Chat
+model AIConversation {
+  id              String          @id @default(cuid())
+  userId          String
+  user            User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  title           String?
+  messages        AIMessage[]
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+}
+
+model AIMessage {
+  id              String          @id @default(cuid())
+  conversationId  String
+  conversation    AIConversation  @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  role            String          // user, assistant
+  content         String
+  metadata        Json?           // For what-if simulations, etc.
+  createdAt       DateTime        @default(now())
+}
+
+// Add relations to User model
+// Add these to the User model:
+// investments      Investment[]
+// properties       Property[]
+// bankAccounts     BankAccount[]
+// creditScores     CreditScore[]
+// businessProfiles BusinessProfile[]
+// aiConversations  AIConversation[]

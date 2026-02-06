@@ -2,12 +2,53 @@
 "use client";
 
 import { useAppStore } from "@/state/app-store";
-import { CheckCircle, Circle, Sparkles, ArrowRight } from "lucide-react";
+import { useCurrencyFormat } from "@/lib/currency";
+import { CheckCircle, Circle, Sparkles, ArrowRight, Loader2 } from "lucide-react";
 import { motion } from "framer-motion";
+import { useState } from "react";
+import { toast } from "sonner";
 
 export function TaxActionPlan() {
+  const { format } = useCurrencyFormat();
   const plan = useAppStore((s) => s.taxActionPlan);
   const toggleStep = useAppStore((s) => s.toggleTaxActionStep);
+  const setTaxActionPlan = useAppStore((s) => s.setTaxActionPlan);
+  const userProfile = useAppStore((s) => s.profile);
+  const taxProfile = useAppStore((s) => s.taxProfile);
+  const investments = useAppStore((s) => s.assets);
+
+  const [isGenerating, setIsGenerating] = useState(false);
+
+  const handleGeneratePlan = async () => {
+    setIsGenerating(true);
+    try {
+      // Construct context from store
+      const context = {
+        annualIncome: userProfile?.monthlyIncome ? userProfile.monthlyIncome * 12 : 0,
+        investments: investments.map(a => ({ name: a.name, value: a.value, type: a.type })),
+        regime: taxProfile?.regime,
+        age: userProfile?.dateOfBirth ? new Date().getFullYear() - new Date(userProfile.dateOfBirth).getFullYear() : 30,
+        rentPaid: 0 // Ideally fetch from expenses
+      };
+
+      const response = await fetch("/api/tax/advisor", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ context }),
+      });
+
+      if (!response.ok) throw new Error("Failed to generate plan");
+
+      const newPlan = await response.json();
+      setTaxActionPlan(newPlan);
+      toast.success("Tax Strategy Generated!");
+    } catch (error) {
+      console.error(error);
+      toast.error("Failed to generate tax plan. Please try again.");
+    } finally {
+      setIsGenerating(false);
+    }
+  };
 
   // Fallback empty state if no plan exists
   if (!plan) {
@@ -25,8 +66,18 @@ export function TaxActionPlan() {
         <div className="flex flex-col items-center justify-center py-8 text-center">
           <Sparkles className="mb-3 h-10 w-10 text-zinc-700" />
           <p className="text-sm text-zinc-400">No tax strategy generated yet.</p>
-          <button className="mt-4 rounded-full bg-white/10 px-4 py-2 text-xs font-medium text-white hover:bg-white/20">
-            Generate Plan
+          <button 
+            onClick={handleGeneratePlan}
+            disabled={isGenerating}
+            className="mt-4 flex items-center gap-2 rounded-full bg-purple-500/10 px-4 py-2 text-xs font-medium text-purple-400 hover:bg-purple-500/20 disabled:opacity-50"
+          >
+            {isGenerating ? (
+              <>
+                <Loader2 className="h-3 w-3 animate-spin" /> Analyzing...
+              </>
+            ) : (
+              "Generate Plan"
+            )}
           </button>
         </div>
       </div>
@@ -43,8 +94,18 @@ export function TaxActionPlan() {
           </div>
           <p className="text-xs text-zinc-500">Tailored for your portfolio</p>
         </div>
-        <div className="rounded-full bg-purple-500/10 px-3 py-1 text-xs font-bold text-purple-400">
-          Potential Savings: ₹{plan.totalPotentialSavings.toLocaleString()}
+        <div className="flex items-center gap-2">
+          <button 
+            onClick={handleGeneratePlan}
+            disabled={isGenerating}
+            className="rounded-full bg-white/5 p-2 text-zinc-400 hover:bg-white/10 disabled:opacity-50"
+            title="Regenerate Plan"
+          >
+            {isGenerating ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />}
+          </button>
+          <div className="rounded-full bg-purple-500/10 px-3 py-1 text-xs font-bold text-purple-400">
+            Potential Savings: {format(plan.totalPotentialSavings)}
+          </div>
         </div>
       </div>
 
@@ -89,7 +150,7 @@ export function TaxActionPlan() {
 
               {step.potentialSaving > 0 && !step.isCompleted && (
                 <div className="shrink-0 rounded-lg bg-white/5 px-2 py-1 text-[10px] font-medium text-zinc-300">
-                  Save ₹{step.potentialSaving.toLocaleString()}
+                  Save {format(step.potentialSaving)}
                 </div>
               )}
             </div>

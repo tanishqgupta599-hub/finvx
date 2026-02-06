@@ -10,6 +10,7 @@ import { useMemo, useState } from "react";
 import { toast } from "sonner";
 import { CreditCard, Wallet, PieChart, Tag, Pencil, Trash2 } from "lucide-react";
 import { Transaction, EXPENSE_CATEGORIES } from "@/domain/models";
+import { useCurrencyFormat } from "@/lib/currency";
 
 type PaymentType = "asset" | "creditCard";
 type Category = Transaction["category"];
@@ -22,6 +23,7 @@ export default function Expenses() {
   const updateTransaction = useAppStore((s) => s.updateTransaction);
   const deleteTransaction = useAppStore((s) => s.deleteTransaction);
   const overwhelmMode = useAppStore((s) => s.overwhelmMode);
+  const { format } = useCurrencyFormat();
 
   const [sheetOpen, setSheetOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -212,7 +214,7 @@ export default function Expenses() {
             <div className="rounded-2xl bg-gradient-to-br from-rose-500/15 via-red-500/10 to-orange-500/15 p-4 text-sm border border-rose-500/30">
               <div className="text-xs text-rose-100/80">Total spent this month</div>
               <div className="mt-1 text-2xl font-bold text-white">
-                ₹{monthlyTotal.toLocaleString("en-IN")}
+                {format(monthlyTotal)}
               </div>
             </div>
             
@@ -264,7 +266,7 @@ export default function Expenses() {
                     </div>
                     <div className="flex items-center gap-3">
                       <div className="font-semibold text-rose-600">
-                        -₹{Math.abs(t.amount).toLocaleString("en-IN")}
+                        {format(t.amount)}
                       </div>
                       <div className="flex gap-1 ml-2">
                         <Button variant="ghost" size="sm" className="h-8 w-8 p-0 text-zinc-400 hover:text-zinc-600" onClick={() => handleEdit(t)}>
@@ -294,7 +296,7 @@ export default function Expenses() {
                     <div key={item.key} className="space-y-1.5">
                       <div className="flex justify-between text-xs">
                         <span className="font-medium text-zinc-700 dark:text-zinc-300">{item.label}</span>
-                        <span className="text-zinc-500">₹{item.value.toLocaleString("en-IN")}</span>
+                        <span className="text-zinc-500">{format(item.value)}</span>
                       </div>
                       <div className="h-2 w-full rounded-full bg-zinc-800 overflow-hidden">
                         <div
@@ -323,8 +325,8 @@ export default function Expenses() {
                  <div key={card.id} className="flex justify-between items-center text-sm p-2 bg-zinc-900 rounded-lg">
                     <span className="font-medium">{card.brand.toUpperCase()} {card.last4}</span>
                     <div className="text-right">
-                      <div className="text-xs text-emerald-600">Avail: ₹{(card.limit - card.balance).toLocaleString("en-IN")}</div>
-                      <div className="text-[10px] text-zinc-500">Used: ₹{card.balance.toLocaleString("en-IN")}</div>
+                      <div className="text-xs text-emerald-600">Avail: {format(card.limit - card.balance)}</div>
+                      <div className="text-[10px] text-zinc-500">Used: {format(card.balance)}</div>
                     </div>
                  </div>
               ))}
@@ -332,7 +334,7 @@ export default function Expenses() {
               {cashAssets.map(asset => (
                  <div key={asset.id} className="flex justify-between items-center text-sm p-2 bg-zinc-900 rounded-lg">
                     <span className="font-medium">{asset.name}</span>
-                    <span className="text-zinc-500">Avail: ₹{asset.value.toLocaleString("en-IN")}</span>
+                    <span className="text-zinc-500">Avail: {format(asset.value)}</span>
                  </div>
               ))}
             </div>
@@ -416,11 +418,11 @@ export default function Expenses() {
                 <option value="" disabled>Select Source</option>
                 {form.paymentType === 'asset' ? (
                    cashAssets.map(a => (
-                      <option key={a.id} value={a.id}>{a.name} (₹{a.value.toLocaleString()})</option>
+                      <option key={a.id} value={a.id}>{a.name} ({format(a.value)})</option>
                    ))
                 ) : (
                    creditCards.map(c => (
-                      <option key={c.id} value={c.id}>{c.brand.toUpperCase()} {c.last4} (Due: ₹{c.balance.toLocaleString()})</option>
+                      <option key={c.id} value={c.id}>{c.brand.toUpperCase()} {c.last4} (Due: {format(c.balance)})</option>
                    ))
                 )}
              </Select>

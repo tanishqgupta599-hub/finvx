@@ -8,6 +8,8 @@ import { Select } from "@/components/ui/Select";
 import { Switch } from "@/components/ui/Switch";
 import { useAppStore } from "@/state/app-store";
 import type { ProfileMode } from "@/domain/models";
+import { CountrySelector } from "@/components/profile/CountrySelector";
+import { CountryCode, getCountryConfig } from "@/lib/countries";
 
 type StepId = 1 | 2 | 3 | 4 | 5 | 6;
 
@@ -38,8 +40,7 @@ export default function Onboarding() {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [ageRange, setAgeRange] = useState<(typeof ageRanges)[number] | "">("25-34");
-  const [country, setCountry] = useState("India");
-  const [currency, setCurrency] = useState("INR");
+  const [countryCode, setCountryCode] = useState<CountryCode | undefined>("IN");
   const [hasDependents, setHasDependents] = useState(false);
   const [employment, setEmployment] = useState<(typeof employmentTypes)[number] | "">("salaried");
   const [mode, setMode] = useState<ProfileMode>("Balanced");
@@ -54,6 +55,8 @@ export default function Onboarding() {
   const [emergencyPhone, setEmergencyPhone] = useState("");
   const [demoEnabled, setDemoEnabled] = useState(true);
   const [errors, setErrors] = useState<Errors>({});
+
+  const currencySymbol = countryCode ? getCountryConfig(countryCode).currencySymbol : getCountryConfig('IN').currencySymbol;
 
   const totalSteps: StepId = 6;
 
@@ -82,16 +85,26 @@ export default function Onboarding() {
       setErrors(allErrors);
       return;
     }
+    
+    // Ensure name is provided
+    if (!name || !name.trim()) {
+      setErrors({ name: "Name is required to personalize your experience." });
+      setStep(2); // Go back to step 2 where name is collected
+      return;
+    }
+    
     const profileId = "user_main";
+    const countryConfig = countryCode ? getCountryConfig(countryCode) : null;
     setProfile({
       id: profileId,
-      name: name || "You",
+      name: name.trim(), // Store trimmed name
       email: email || "you@example.com",
       avatarUrl: undefined,
       mode,
       ageRange: ageRange || undefined,
-      country,
-      currency,
+      country: countryConfig?.name || "India",
+      countryCode: countryCode || "IN",
+      currency: countryConfig?.currency || "INR",
       hasDependents,
       employment: employment || undefined,
       monthlyIncomeRange: incomeRange || undefined,
@@ -100,6 +113,7 @@ export default function Onboarding() {
       insuranceTerm,
       emergencyContactName: emergencyName || undefined,
       emergencyContactPhone: emergencyPhone || undefined,
+      onboardingCompleted: true,
     });
     setProfileMode(mode);
 
@@ -131,8 +145,37 @@ export default function Onboarding() {
   };
 
   const skip = () => {
+    // Even when skipping, set a default name for personalization
+    const defaultCountryCode = countryCode || "IN";
+    const defaultCountryConfig = getCountryConfig(defaultCountryCode);
+
+    if (!name || !name.trim()) {
+      setProfile({
+        id: "user_main",
+        name: "there", // Friendly default
+        email: email || "",
+        avatarUrl: undefined,
+        mode: "Balanced",
+        country: defaultCountryConfig.name,
+        countryCode: defaultCountryCode,
+        currency: defaultCountryConfig.currency,
+      });
+    } else {
+      const countryConfig = countryCode ? getCountryConfig(countryCode) : getCountryConfig('IN');
+      setProfile({
+        id: "user_main",
+        name: name.trim(),
+        email: email || "",
+        avatarUrl: undefined,
+        mode,
+        country: countryConfig.name,
+        countryCode: countryCode || 'IN',
+        currency: countryConfig.currency,
+      });
+    }
     enableDemoData();
     seedDemoData();
+    markOnboardingCompleted();
     router.push("/home");
   };
 
@@ -253,15 +296,14 @@ export default function Onboarding() {
                       <div className="mt-1 text-xs text-red-500">{errors.ageRange}</div>
                     )}
                   </div>
-                  <Input
-                    placeholder="Country"
-                    value={country}
-                    onChange={(e) => setCountry(e.target.value)}
-                  />
-                  <Input
-                    placeholder="Currency"
-                    value={currency}
-                    onChange={(e) => setCurrency(e.target.value)}
+                  <CountrySelector
+                    value={countryCode}
+                    onChange={(code) => {
+                      setCountryCode(code);
+                      const config = getCountryConfig(code);
+                      // Currency is automatically set from country
+                    }}
+                    showLabel={false}
                   />
                 </div>
                 <div className="grid gap-3 sm:grid-cols-2">
@@ -317,10 +359,10 @@ export default function Onboarding() {
                       onChange={setIncomeRange}
                     >
                       <option value="">Monthly income</option>
-                      <option value="&lt;50k">Below ₹50k</option>
-                      <option value="50k-1L">₹50k–₹1L</option>
-                      <option value="1L-2L">₹1L–₹2L</option>
-                      <option value="2L+">Above ₹2L</option>
+                      <option value="&lt;50k">Below {currencySymbol}50k</option>
+                      <option value="50k-1L">{currencySymbol}50k–{currencySymbol}1L</option>
+                      <option value="1L-2L">{currencySymbol}1L–{currencySymbol}2L</option>
+                      <option value="2L+">Above {currencySymbol}2L</option>
                     </Select>
                     {errors.incomeRange && (
                       <div className="mt-1 text-xs text-red-500">{errors.incomeRange}</div>
@@ -332,10 +374,10 @@ export default function Onboarding() {
                       onChange={setFixedCostRange}
                     >
                       <option value="">Fixed costs</option>
-                      <option value="&lt;25k">Below ₹25k</option>
-                      <option value="25k-50k">₹25k–₹50k</option>
-                      <option value="50k-1L">₹50k–₹1L</option>
-                      <option value="1L+">Above ₹1L</option>
+                      <option value="&lt;25k">Below {currencySymbol}25k</option>
+                      <option value="25k-50k">{currencySymbol}25k–{currencySymbol}50k</option>
+                      <option value="50k-1L">{currencySymbol}50k–{currencySymbol}1L</option>
+                      <option value="1L+">Above {currencySymbol}1L</option>
                     </Select>
                     {errors.fixedCostRange && (
                       <div className="mt-1 text-xs text-red-500">{errors.fixedCostRange}</div>

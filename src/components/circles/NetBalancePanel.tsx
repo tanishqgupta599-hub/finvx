@@ -2,6 +2,7 @@
 import { ExpenseCircle } from "@/domain/circles";
 import { useMemo, useState } from "react";
 import { Bell, Check } from "lucide-react";
+import { useCurrencyFormat } from "@/lib/currency";
 
 interface NetBalancePanelProps {
   circle: ExpenseCircle;
@@ -9,6 +10,7 @@ interface NetBalancePanelProps {
 }
 
 export function NetBalancePanel({ circle, currentUserId }: NetBalancePanelProps) {
+  const { format } = useCurrencyFormat();
   const [sentReminders, setSentReminders] = useState<string[]>([]);
 
   const handleRemind = (memberId: string) => {
@@ -115,7 +117,7 @@ export function NetBalancePanel({ circle, currentUserId }: NetBalancePanelProps)
               </div>
               <div className="flex items-center gap-3">
                 <span className="font-mono font-medium text-white">
-                  ₹{Math.round(s.amount).toLocaleString("en-IN")}
+                  {format(Math.round(s.amount))}
                 </span>
                 {isMeTo && (
                   <button
@@ -143,8 +145,8 @@ export function NetBalancePanel({ circle, currentUserId }: NetBalancePanelProps)
            const myReceivables = settlements.filter(s => s.to === currentUserId).reduce((acc, s) => acc + s.amount, 0);
            const myPayables = settlements.filter(s => s.from === currentUserId).reduce((acc, s) => acc + s.amount, 0);
            
-           if (myReceivables > 0) return <div className="text-emerald-400 text-sm font-medium">You will receive ₹{Math.round(myReceivables).toLocaleString("en-IN")} in total</div>
-           if (myPayables > 0) return <div className="text-orange-400 text-sm font-medium">You need to pay ₹{Math.round(myPayables).toLocaleString("en-IN")} in total</div>
+           if (myReceivables > 0) return <div className="text-emerald-400 text-sm font-medium">You will receive {format(Math.round(myReceivables))} in total</div>
+           if (myPayables > 0) return <div className="text-orange-400 text-sm font-medium">You need to pay {format(Math.round(myPayables))} in total</div>
            return <div className="text-zinc-500 text-sm">You are all settled.</div>
         })()}
       </div>

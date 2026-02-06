@@ -2,6 +2,7 @@
 import { ExpenseCircle } from "@/domain/circles";
 import { useMemo } from "react";
 import Link from "next/link";
+import { useCurrencyFormat } from "@/lib/currency";
 import { ChevronRight, Users } from "lucide-react";
 
 interface CircleCardProps {
@@ -10,6 +11,7 @@ interface CircleCardProps {
 }
 
 export function CircleCard({ circle, currentUserId }: CircleCardProps) {
+  const { format } = useCurrencyFormat();
   const balance = useMemo(() => {
     let paid = 0;
     let share = 0;
@@ -29,9 +31,9 @@ export function CircleCard({ circle, currentUserId }: CircleCardProps) {
 
   const balanceText =
     balance > 0
-      ? `You get back ₹${balance.toLocaleString("en-IN")}`
+      ? `You get back ${format(balance)}`
       : balance < 0
-      ? `You owe ₹${Math.abs(balance).toLocaleString("en-IN")}`
+      ? `You owe ${format(Math.abs(balance))}`
       : "Settled up";
 
   const balanceColor =

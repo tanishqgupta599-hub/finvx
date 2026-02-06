@@ -10,6 +10,7 @@ import { useState } from "react";
 import { toast } from "sonner";
 import type { Asset, Liability } from "@/domain/models";
 import { Area, AreaChart, ResponsiveContainer, Tooltip, XAxis } from "recharts";
+import { useCurrencyFormat } from "@/lib/currency";
 
 export default function NetWorth() {
   const assets = useAppStore((s) => s.assets);
@@ -38,6 +39,7 @@ export default function NetWorth() {
     balance: "",
     apr: "",
   });
+  const { format } = useCurrencyFormat();
   const totalAssets = assets.reduce((a, b) => a + b.value, 0);
   const totalDebt = loans.reduce((a, b) => a + b.balance, 0);
   const totalLiabilities = liabilities.reduce((a, b) => a + b.balance, 0);
@@ -162,9 +164,7 @@ export default function NetWorth() {
     setLiabilitySheetOpen(false);
   };
 
-  const snapshotText = `Net worth: ₹${netWorth.toLocaleString("en-IN")} (Assets ₹${totalAssets.toLocaleString(
-    "en-IN",
-  )}, Debt ₹${(totalDebt + totalLiabilities).toLocaleString("en-IN")}) – created with Finvx.`;
+  const snapshotText = `Net worth: ${format(netWorth)} (Assets ${format(totalAssets)}, Debt ${format(totalDebt + totalLiabilities)}) – created with Finvx.`;
 
   const copySnapshot = async () => {
     try {
@@ -198,19 +198,19 @@ export default function NetWorth() {
               <div className="rounded-2xl bg-gradient-to-br from-cyan-500/15 via-sky-500/10 to-emerald-500/15 p-4 text-sm border border-cyan-500/30">
                 <div className="text-xs text-cyan-100/80">Net worth</div>
                 <div className="mt-1 text-lg font-semibold text-white">
-                  ₹{netWorth.toLocaleString("en-IN")}
+                  {format(netWorth)}
                 </div>
               </div>
               <div className="rounded-2xl bg-gradient-to-br from-emerald-500/15 via-teal-500/10 to-cyan-500/15 p-4 text-sm border border-emerald-500/30">
                 <div className="text-xs text-emerald-100/80">Assets</div>
                 <div className="mt-1 text-lg font-semibold text-white">
-                  ₹{totalAssets.toLocaleString("en-IN")}
+                  {format(totalAssets)}
                 </div>
               </div>
               <div className="rounded-2xl bg-gradient-to-br from-rose-500/15 via-orange-500/10 to-amber-500/15 p-4 text-sm border border-rose-500/30">
                 <div className="text-xs text-rose-100/80">Debt + liabilities</div>
                 <div className="mt-1 text-lg font-semibold text-white">
-                  ₹{(totalDebt + totalLiabilities + totalCreditCardDebt).toLocaleString("en-IN")}
+                  {format(totalDebt + totalLiabilities + totalCreditCardDebt)}
                 </div>
               </div>
               <div className="rounded-2xl bg-gradient-to-br from-indigo-500/15 via-blue-500/10 to-cyan-500/15 p-4 text-sm border border-indigo-500/30">
@@ -246,7 +246,7 @@ export default function NetWorth() {
                     <Tooltip
                       formatter={(value: any) =>
                         typeof value === "number"
-                          ? `₹${value.toLocaleString("en-IN")}`
+                          ? format(value)
                           : value
                       }
                     />
@@ -297,7 +297,7 @@ export default function NetWorth() {
                     <div>{a.name}</div>
                     <div className="text-xs text-zinc-500">{a.type}</div>
                   </div>
-                  <div>₹{a.value.toLocaleString("en-IN")}</div>
+                  <div>{format(a.value)}</div>
                 </button>
               ))}
             </div>
@@ -329,7 +329,7 @@ export default function NetWorth() {
                     <div>{l.name}</div>
                     <div className="text-xs text-zinc-500">{l.type}</div>
                   </div>
-                  <div>₹{l.balance.toLocaleString("en-IN")}</div>
+                  <div>{format(l.balance)}</div>
                 </button>
               ))}
               <button

@@ -19,6 +19,10 @@ import { BestCardForSpend } from "@/components/widgets/BestCardForSpend";
 import { BudgetPulseCard } from "@/components/widgets/BudgetPulseCard";
 import { TopActionsList } from "@/components/widgets/TopActionsList";
 import { FinancialAvatar } from "@/components/profile/FinancialAvatar";
+import { SpendingTrendChart } from "@/components/widgets/SpendingTrendChart";
+import { RecentActivityCard } from "@/components/widgets/RecentActivityCard";
+import { ExportButton } from "@/components/widgets/ExportButton";
+import { useCurrencyFormat } from "@/lib/currency";
 import { financeQuotes } from "@/lib/quotes";
 import { Sparkles, ArrowRight, CreditCard, Calendar, TrendingUp, Shield, Activity, Zap, CheckCircle2, Quote } from "lucide-react";
 
@@ -31,6 +35,7 @@ export default function Home() {
   const calendarEvents = useAppStore((s) => s.calendarEvents);
   const creditCards = useAppStore((s) => s.creditCards);
   const taxProfile = useAppStore((s) => s.taxProfile);
+  const { format } = useCurrencyFormat();
   
   const addAsset = useAppStore((s) => s.addAsset);
   const addLoan = useAppStore((s) => s.addLoan);
@@ -44,8 +49,10 @@ export default function Home() {
   const [form, setForm] = useState<Record<string, string>>({});
   const [oracleQuery, setOracleQuery] = useState("");
   const [randomQuote, setRandomQuote] = useState<{text: string, author: string} | null>(null);
+  const [isMounted, setIsMounted] = useState(false);
 
   useEffect(() => {
+    setIsMounted(true);
     if (financeQuotes && financeQuotes.length > 0) {
       setRandomQuote(financeQuotes[Math.floor(Math.random() * financeQuotes.length)]);
     }
@@ -163,10 +170,29 @@ export default function Home() {
                 </span>
              </div>
              <h1 className="text-4xl md:text-5xl font-bold text-white tracking-tight">
-               Good {new Date().getHours() < 12 ? "morning" : new Date().getHours() < 18 ? "afternoon" : "evening"}, <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-blue-500">{profile?.name || "Pilot"}</span>.
+               {(() => {
+                 const hour = new Date().getHours();
+                 const timeGreeting = hour < 12 ? "Good morning" : hour < 18 ? "Good afternoon" : "Good evening";
+                 const userName = profile?.name?.trim() || "there";
+                 // Use first name if full name provided
+                 const displayName = userName.split(" ")[0];
+                 return (
+                   <>
+                     {timeGreeting}, <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 via-blue-500 to-purple-500">{displayName}</span>!
+                   </>
+                 );
+               })()}
              </h1>
              <p className="text-zinc-400 text-base max-w-xl">
-               Your financial operating system is active. <span className="text-zinc-500">Net worth is trending up this week.</span>
+               {profile?.name ? (
+                 <>
+                   Welcome to your financial command center, <span className="text-zinc-300 font-medium">{profile.name.split(" ")[0]}</span>. <span className="text-zinc-500">Your dashboard is ready.</span>
+                 </>
+               ) : (
+                 <>
+                   Your financial operating system is active. <span className="text-zinc-500">Net worth is trending up this week.</span>
+                 </>
+               )}
              </p>
           </div>
 
@@ -183,9 +209,10 @@ export default function Home() {
                 onChange={(e) => setOracleQuery(e.target.value)}
                 onKeyDown={(e) => {
                   if (e.key === "Enter") {
-                    setOracleQuery("");
+                    handleOracleSearch();
                   }
                 }}
+                suppressHydrationWarning
               />
               <Link href="/oracle">
                 <Button size="md" className="bg-zinc-900 text-white hover:bg-zinc-800 font-semibold px-6 rounded-xl shadow-[0_0_20px_rgba(0,0,0,0.3)]">
@@ -196,7 +223,7 @@ export default function Home() {
           </div>
 
           {/* Daily Finance Quote */}
-          {randomQuote && (
+          {isMounted && randomQuote && (
             <motion.div 
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
@@ -257,7 +284,7 @@ export default function Home() {
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold text-white mb-1">
-                   {profile?.currency} 12,400
+                   {format(12400)}
                 </div>
                 <div className="text-xs text-zinc-500">
                    Projected savings this month
@@ -292,10 +319,28 @@ export default function Home() {
               </h3>
               <SubscriptionLeakCard />
            </div>
+
+           {/* Spending Trends Chart */}
+           {!overwhelmMode && (
+             <div className="space-y-4">
+               <div className="flex items-center justify-between">
+                 <h3 className="text-lg font-semibold text-white flex items-center gap-2">
+                   <TrendingUp className="h-5 w-5 text-cyan-400" /> Spending Trends
+                 </h3>
+                 <ExportButton type="transactions" />
+               </div>
+               <SpendingTrendChart />
+             </div>
+           )}
         </div>
 
         {/* Right Column: Cards & Bills (4 cols) */}
         <div className="lg:col-span-4 space-y-6">
+           {/* Recent Activity Feed */}
+           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }}>
+              <RecentActivityCard />
+           </motion.div>
+
            {/* Credit Card Utilization */}
            <Card className="bg-zinc-900/30 border-white/10">
               <CardHeader className="pb-2">
@@ -310,7 +355,7 @@ export default function Home() {
                     <div className="text-xs text-zinc-500">Utilization</div>
                   </div>
                   <div className="text-right">
-                    <div className="text-sm font-medium text-white">{profile?.currency} {totalCreditBalance.toLocaleString()}</div>
+                    <div className="text-sm font-medium text-white">{format(totalCreditBalance)}</div>
                     <div className="text-xs text-zinc-500">Total Debt</div>
                   </div>
                 </div>
@@ -356,7 +401,7 @@ export default function Home() {
                          <div className="text-xs text-zinc-500">Due in {Math.ceil((new Date(bill.date).getTime() - Date.now()) / (1000 * 60 * 60 * 24))} days</div>
                        </div>
                        <div className="text-sm font-semibold text-white">
-                         {profile?.currency} {bill.amount?.toLocaleString() || 0}
+                         {format(bill.amount || 0)}
                        </div>
                      </div>
                    ))}

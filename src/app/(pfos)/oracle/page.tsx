@@ -4,6 +4,7 @@ import { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Send, Bot, Sparkles, User, RefreshCw, Terminal } from "lucide-react";
 import { useAppStore } from "@/state/app-store";
+import { useCurrencyFormat } from "@/lib/currency";
 import { Card } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
@@ -15,19 +16,21 @@ type Message = {
   timestamp: Date;
 };
 
-const SUGGESTIONS = [
-  "What is my current net worth?",
-  "How much debt do I have?",
-  "Analyze my spending habits",
-  "Suggest a tax saving strategy",
-  "Can I afford a ₹50,000 vacation?",
-];
-
 export default function OraclePage() {
   const scrollRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const [input, setInput] = useState("");
   const [isTyping, setIsTyping] = useState(false);
+  const { format, symbol } = useCurrencyFormat();
+  
+  const SUGGESTIONS = [
+    "What is my current net worth?",
+    "How much debt do I have?",
+    "Analyze my spending habits",
+    "Suggest a tax saving strategy",
+    `Can I afford a ${format(50000)} vacation?`,
+  ];
+
   const [messages, setMessages] = useState<Message[]>([
     {
       id: "welcome",
@@ -48,65 +51,86 @@ export default function OraclePage() {
 
   const generateResponse = async (query: string) => {
     setIsTyping(true);
-    // Simulate thinking delay
-    await new Promise((resolve) => setTimeout(resolve, 1500));
 
-    const lowerQuery = query.toLowerCase();
-    let response = "I'm processing that request, but my neural pathways are unsure. Could you rephrase?";
-
-    // Basic heuristic "AI" logic
-    if (lowerQuery.includes("net worth")) {
+    try {
+      // Calculate financial context
       const totalAssets = assets.reduce((sum, a) => sum + a.value, 0);
-      const totalDebt = loans.reduce((sum, l) => sum + l.balance, 0) + creditCards.reduce((sum, c) => sum + c.balance, 0);
+      const totalLoans = loans.reduce((sum, l) => sum + l.balance, 0);
+      const totalCardDebt = creditCards.reduce((sum, c) => sum + c.balance, 0);
+      const totalDebt = totalLoans + totalCardDebt;
       const netWorth = totalAssets - totalDebt;
-      response = `Based on your current data, your calculated Net Worth is ₹${netWorth.toLocaleString("en-IN")}. \n\nTotal Assets: ₹${totalAssets.toLocaleString("en-IN")}\nTotal Liabilities: ₹${totalDebt.toLocaleString("en-IN")}`;
-    } else if (lowerQuery.includes("debt") || lowerQuery.includes("loan")) {
-      const totalLoan = loans.reduce((sum, l) => sum + l.balance, 0);
-      const cardDebt = creditCards.reduce((sum, c) => sum + c.balance, 0);
-      response = `You currently hold a total debt of ₹${(totalLoan + cardDebt).toLocaleString("en-IN")}. \n\nLoans: ₹${totalLoan.toLocaleString("en-IN")}\nCredit Cards: ₹${cardDebt.toLocaleString("en-IN")}. \n\nI recommend prioritizing the highest interest debt first.`;
-    } else if (lowerQuery.includes("spend") || lowerQuery.includes("expense")) {
-      const recentTxns = transactions.slice(0, 5);
-      response = `I've analyzed your recent transactions. Your last few expenses include:\n${recentTxns.map(t => `• ${t.description}: ₹${Math.abs(t.amount)}`).join("\n")}\n\nYour spending patterns suggest a focus on ${transactions[0]?.category || "general"} items recently.`;
-    } else if (lowerQuery.includes("tax")) {
-      response = "Tax optimization is critical. I recommend maximizing your Section 80C limits (₹1.5L) through ELSS or EPF. Have you checked the new 'Tax' module I recently enabled for you?";
-    } else if (lowerQuery.includes("afford") || lowerQuery.includes("buy")) {
-      // Extract amount
-      const amountMatch = query.match(/(\d+(?:,\d+)*(?:\.\d+)?)/);
-      const amountStr = amountMatch ? amountMatch[0].replace(/,/g, "") : null;
       
-      if (amountStr) {
-        const cost = parseFloat(amountStr);
-        const liquidAssets = assets.filter(a => a.type === "cash" || a.type === "investment").reduce((s, a) => s + a.value, 0);
-        const monthlySubs = subscriptions.reduce((s, sub) => s + sub.amount, 0); // rough monthly
-        const buffer = monthlySubs * 6; // 6 month emergency fund logic
-        
-        const freeCash = liquidAssets - buffer;
-        
-        if (cost > liquidAssets) {
-           response = `ANALYSIS: CRITICAL. \n\nYou cannot afford this purchase of ₹${cost.toLocaleString("en-IN")}. It exceeds your total liquid assets (₹${liquidAssets.toLocaleString("en-IN")}). Advise against purchase.`;
-        } else if (cost > freeCash) {
-           response = `ANALYSIS: CAUTION. \n\nYou have the funds (₹${liquidAssets.toLocaleString("en-IN")}), but buying this for ₹${cost.toLocaleString("en-IN")} would dip into your 6-month safety buffer (estimated need: ₹${buffer.toLocaleString("en-IN")}). \n\nProceed only if necessary.`;
+      const recentTxns = transactions
+        .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
+        .slice(0, 10)
+        .map(t => ({
+          date: t.date,
+          description: t.description,
+          amount: t.amount,
+          category: t.category
+        }));
+
+      const context = {
+        netWorth: format(netWorth),
+        totalAssets: format(totalAssets),
+        totalDebt: format(totalDebt),
+        monthlyIncome: profile?.monthlyIncomeRange || "Unknown",
+        currency: profile?.currency || "USD",
+        recentTransactions: recentTxns,
+        profileName: profile?.name,
+        creditCards: creditCards.map(c => ({
+          name: c.name || c.rewardProgram || c.brand,
+          brand: c.brand,
+          limit: c.limit,
+          balance: c.balance,
+          points: c.pointsBalance,
+          apr: c.apr
+        }))
+      };
+
+      const res = await fetch("/api/oracle/chat", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          message: query,
+          history: messages.map(m => ({ role: m.role, content: m.content })),
+          context
+        })
+      });
+
+      const data = await res.json();
+      
+      let responseText = "";
+      if (!res.ok) {
+        if (data.error && data.error.includes("GOOGLE_API_KEY")) {
+          responseText = "I am currently offline. My neural link (API Key) is missing. Please configure the GOOGLE_API_KEY in your environment variables to activate my full potential.";
         } else {
-           response = `ANALYSIS: GREEN. \n\nYou can comfortably afford this purchase of ₹${cost.toLocaleString("en-IN")}. \n\nYou would still have ₹${(liquidAssets - cost).toLocaleString("en-IN")} in liquid assets, maintaining your safety net.`;
+          responseText = "I encountered a system error processing your request. Please try again later.";
         }
       } else {
-        response = "I can analyze affordability, but I need a price. Try asking 'Can I afford a ₹50,000 laptop?'";
+        responseText = data.response;
       }
-    } else if (lowerQuery.includes("hello") || lowerQuery.includes("hi")) {
-      response = `Hello, ${profile?.name || "User"}. Ready to optimize your wealth?`;
-    } else if (lowerQuery.includes("thank")) {
-      response = "You are welcome. My protocols are designed to serve your financial growth.";
+
+      const aiMsg: Message = {
+        id: crypto.randomUUID(),
+        role: "ai",
+        content: responseText,
+        timestamp: new Date(),
+      };
+      setMessages((prev) => [...prev, aiMsg]);
+
+    } catch (error) {
+      console.error("Oracle Error:", error);
+      const errorMsg: Message = {
+        id: crypto.randomUUID(),
+        role: "ai",
+        content: "My connection was interrupted. Please check your network or try again.",
+        timestamp: new Date(),
+      };
+      setMessages((prev) => [...prev, errorMsg]);
+    } finally {
+      setIsTyping(false);
     }
-
-    const newMessage: Message = {
-      id: Date.now().toString(),
-      role: "ai",
-      content: response,
-      timestamp: new Date(),
-    };
-
-    setMessages((prev) => [...prev, newMessage]);
-    setIsTyping(false);
   };
 
   const handleSubmit = (e?: React.FormEvent) => {

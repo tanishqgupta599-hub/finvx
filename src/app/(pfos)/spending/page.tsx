@@ -5,11 +5,17 @@ import { Input } from "@/components/ui/Input";
 import { Select } from "@/components/ui/Select";
 import { Sheet } from "@/components/ui/Sheet";
 import { EmptyState } from "@/components/ui/EmptyState";
+import { EnhancedEmptyState } from "@/components/ui/EnhancedEmptyState";
 import { useAppStore } from "@/state/app-store";
 import { useMemo, useState } from "react";
 import { toast } from "sonner";
 import { Bar, BarChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import { Transaction, EXPENSE_CATEGORIES } from "@/domain/models";
+import { ExportButton } from "@/components/widgets/ExportButton";
+import { RecurringTransactionManager } from "@/components/widgets/RecurringTransactionManager";
+import { CategoryPieChart } from "@/components/widgets/CategoryPieChart";
+import { useCurrencyFormat } from "@/lib/currency";
+import { formatCompact } from "@/lib/countries";
 
 type TxnFilter = "all" | "income" | "spending";
 type TxnWindow = "all" | "30d" | "7d";
@@ -22,6 +28,7 @@ export default function Spending() {
   const addSubscription = useAppStore((s) => s.addSubscription);
   const updateSubscription = useAppStore((s) => s.updateSubscription);
   const overwhelmMode = useAppStore((s) => s.overwhelmMode);
+  const { format, symbol, countryCode } = useCurrencyFormat();
 
   const [txnFilter, setTxnFilter] = useState<TxnFilter>("all");
   const [txnWindow, setTxnWindow] = useState<TxnWindow>("30d");
@@ -217,13 +224,13 @@ export default function Spending() {
               <div className="rounded-2xl bg-gradient-to-br from-rose-500/15 via-orange-500/10 to-amber-500/15 p-4 text-sm border border-rose-500/30">
                 <div className="text-xs text-rose-100/80">Outflows this period</div>
                 <div className="mt-1 text-lg font-semibold text-white">
-                  ₹{Math.round(monthlySpending).toLocaleString("en-IN")}
+                  {format(Math.round(monthlySpending))}
                 </div>
               </div>
               <div className="rounded-2xl bg-gradient-to-br from-emerald-500/15 via-teal-500/10 to-cyan-500/15 p-4 text-sm border border-emerald-500/30">
                 <div className="text-xs text-emerald-100/80">Incomes this period</div>
                 <div className="mt-1 text-lg font-semibold text-white">
-                  ₹{Math.round(monthlyIncome).toLocaleString("en-IN")}
+                  {format(Math.round(monthlyIncome))}
                 </div>
               </div>
               <div className="rounded-2xl bg-zinc-900 p-4 text-sm">
@@ -235,29 +242,25 @@ export default function Spending() {
                       : "text-rose-500"
                   }`}
                 >
-                  {monthlyIncome - monthlySpending >= 0 ? "+" : "-"}₹
-                  {Math.round(
-                    Math.abs(monthlyIncome - monthlySpending)
-                  ).toLocaleString("en-IN")}
+                  {monthlyIncome - monthlySpending >= 0 ? "+" : "-"}
+                  {format(Math.round(Math.abs(monthlyIncome - monthlySpending)))}
                 </div>
               </div>
               <div className="rounded-2xl bg-zinc-900 p-4 text-sm">
                 <div className="text-xs text-zinc-500">Subscriptions/mo</div>
                 <div className="mt-1 text-lg font-semibold text-zinc-100">
-                  ₹
-                  {subs
-                    .reduce((sum, s) => sum + s.amount, 0)
-                    .toLocaleString("en-IN")}
+                  {format(subs.reduce((sum, s) => sum + s.amount, 0))}
                 </div>
               </div>
             </div>
           ) : (
             <div className="mt-4">
-              <EmptyState
-                title="No recent spending yet"
-                description="Log a grocery run or bill to let the dashboard breathe."
-                primaryActionLabel="Add spend"
-                onPrimaryAction={openNewTransaction}
+              <EnhancedEmptyState
+                type="transactions"
+                primaryAction={{
+                  label: "Add your first transaction",
+                  onClick: openNewTransaction
+                }}
               />
             </div>
           )}
@@ -290,9 +293,7 @@ export default function Spending() {
                       <YAxis
                         tickLine={false}
                         axisLine={false}
-                        tickFormatter={(value) =>
-                          `₹${Math.round(value).toLocaleString("en-IN")}`
-                        }
+                        tickFormatter={(value) => formatCompact(value, countryCode)}
                         tick={{ fontSize: 10 }}
                       />
                       <Tooltip
@@ -304,7 +305,7 @@ export default function Spending() {
                         }}
                         formatter={(value: any) =>
                           typeof value === "number"
-                            ? `₹${Math.round(value).toLocaleString("en-IN")}`
+                            ? format(Math.round(value))
                             : value
                         }
                       />
@@ -344,6 +345,7 @@ export default function Spending() {
             <div className="flex flex-wrap items-center justify-between gap-3">
               <div className="text-sm font-medium">Transactions</div>
               <div className="flex flex-wrap items-center gap-2 text-xs">
+                <ExportButton type="transactions" />
                 <Select
                   value={txnWindow}
                   onChange={(v) => setTxnWindow(v as TxnWindow)}
@@ -372,9 +374,14 @@ export default function Spending() {
             </div>
             <div className="mt-3 grid gap-2">
               {!hasTransactions && (
-                <EmptyState
+                <EnhancedEmptyState
+                  type="transactions"
                   title="No transactions in view"
                   description="Adjust filters or add a small expense to get started."
+                  primaryAction={{
+                    label: "Add transaction",
+                    onClick: openNewTransaction
+                  }}
                 />
               )}
               {filteredTransactions.slice(0, 20).map((t) => (
@@ -394,8 +401,8 @@ export default function Spending() {
                       t.amount < 0 ? "text-red-600" : "text-emerald-600"
                     }
                   >
-                    {t.amount < 0 ? "-" : "+"}₹
-                    {Math.abs(t.amount).toLocaleString("en-IN")}
+                    {t.amount < 0 ? "-" : "+"}
+                    {format(Math.abs(t.amount))}
                   </div>
                 </div>
               ))}
@@ -404,32 +411,14 @@ export default function Spending() {
         </Card>
 
         {!overwhelmMode && (
-          <Card>
-            <CardContent>
-              <div className="text-sm font-medium">Category focus</div>
-              <div className="mt-2 text-xs text-zinc-500">
-                A soft view of where money tends to flow this period.
-              </div>
-              <div className="mt-3 grid gap-2 text-xs">
-                {categoryBreakdown.map((item) => (
-                  <div
-                    key={item.category}
-                    className="flex items-center justify-between rounded-xl bg-zinc-900 p-2"
-                  >
-                    <div className="font-medium">{item.label}</div>
-                    <div>₹{Math.round(item.amount).toLocaleString("en-IN")}</div>
-                  </div>
-                ))}
-                {categoryBreakdown.length === 0 && (
-                  <div className="text-xs text-zinc-500">
-                    We will gently surface patterns once a few transactions exist.
-                  </div>
-                )}
-              </div>
-            </CardContent>
-          </Card>
+          <CategoryPieChart />
         )}
       </div>
+
+      {/* Recurring Transactions */}
+      {!overwhelmMode && (
+        <RecurringTransactionManager />
+      )}
 
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
         <Card className="lg:col-span-2">
@@ -442,9 +431,12 @@ export default function Spending() {
             </div>
             <div className="mt-3 grid gap-2">
               {!hasSubscriptions && (
-                <EmptyState
-                  title="No subscriptions captured"
-                  description="Streaming, apps, small retainers – they can quietly add up."
+                <EnhancedEmptyState
+                  type="subscriptions"
+                  primaryAction={{
+                    label: "Add subscription",
+                    onClick: openNewSubscription
+                  }}
                 />
               )}
               {subs.map((s) => (
@@ -469,7 +461,7 @@ export default function Spending() {
                   <div className="text-right">
                     <div className="text-xs text-zinc-500">Amount</div>
                     <div className="text-sm font-semibold">
-                      ₹{s.amount.toLocaleString("en-IN")}
+                      {format(s.amount)}
                     </div>
                   </div>
                 </button>
@@ -486,7 +478,7 @@ export default function Spending() {
             <div className="mt-3">
               <div className="flex items-center justify-between text-xs text-zinc-500">
                 <span>Monthly allowance</span>
-                <span>₹{allowance.toLocaleString("en-IN")}</span>
+                <span>{format(allowance)}</span>
               </div>
               <input
                 type="range"
@@ -502,7 +494,7 @@ export default function Spending() {
               <div className="text-zinc-500">Guilt-free daily</div>
               <div className="mt-1 text-sm font-semibold">
                 {dailyAllowance
-                  ? `~₹${dailyAllowance.toLocaleString("en-IN")} per day`
+                  ? `~${format(dailyAllowance)} per day`
                   : "Slide to choose a number that feels light"}
               </div>
               <div className="mt-2 text-xs text-zinc-500">
@@ -571,7 +563,7 @@ export default function Spending() {
               <option value="">Select account...</option>
               {assets.filter(a => a.type === 'cash' || a.type === 'other').map((a) => (
                 <option key={a.id} value={a.name}>
-                  {a.name} (₹{a.value.toLocaleString("en-IN")})
+                  {a.name} ({format(a.value)})
                 </option>
               ))}
             </Select>

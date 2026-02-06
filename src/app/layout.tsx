@@ -20,11 +20,30 @@ export const metadata: Metadata = {
   description: "A comprehensive fintech dashboard for managing your finances.",
 };
 
+// Check if Clerk keys are configured
+const hasClerkKeys = 
+  process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY && 
+  process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY !== 'pk_test_your_key_here' &&
+  process.env.CLERK_SECRET_KEY &&
+  process.env.CLERK_SECRET_KEY !== 'sk_test_your_key_here';
+
 export default function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  // If Clerk keys are not configured, render without ClerkProvider
+  if (!hasClerkKeys) {
+    return (
+      <html lang="en" suppressHydrationWarning>
+        <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
+          <Providers>{children}</Providers>
+        </body>
+      </html>
+    );
+  }
+
+  // Render with ClerkProvider if keys are configured
   return (
     <ClerkProvider
       appearance={{

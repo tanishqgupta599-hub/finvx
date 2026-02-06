@@ -14,13 +14,13 @@ interface CreateCircleModalProps {
 }
 
 export function CreateCircleModal({ currentUserId }: CreateCircleModalProps) {
-  const [open, setOpen] = useState(false);
-  const [name, setName] = useState("");
-  const [currency, setCurrency] = useState("INR");
-  const [selectedMembers, setSelectedMembers] = useState<string[]>([]);
-
   const addCircle = useAppStore((s) => s.addCircle);
   const friends = useAppStore((s) => s.friends);
+  const profile = useAppStore((s) => s.profile);
+  
+  const [open, setOpen] = useState(false);
+  const [name, setName] = useState("");
+  const [selectedMembers, setSelectedMembers] = useState<string[]>([]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -51,7 +51,7 @@ export function CreateCircleModal({ currentUserId }: CreateCircleModalProps) {
       id: `c_${Date.now()}`,
       name,
       icon: "👥",
-      currency,
+      currency: profile?.currency || "INR",
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
       defaultSplitType: "equal",

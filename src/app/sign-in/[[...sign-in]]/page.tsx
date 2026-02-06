@@ -1,10 +1,103 @@
 "use client";
 
-import { SignIn } from "@clerk/nextjs";
-import { Sparkles, ShieldCheck, Wallet } from "lucide-react";
+import { Sparkles, ShieldCheck, Wallet, AlertCircle } from "lucide-react";
 import { motion } from "framer-motion";
+import { useEffect, useState } from "react";
+import Link from "next/link";
+
+// Check if Clerk is configured (only check public key in client component)
+const hasClerkKeys = 
+  typeof window !== 'undefined' 
+    ? (process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY && 
+       process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY !== 'pk_test_your_key_here' &&
+       process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY.length > 20)
+    : (process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY && 
+       process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY !== 'pk_test_your_key_here' &&
+       process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY.length > 20);
 
 export default function Page() {
+  const [SignInComponent, setSignInComponent] = useState<any>(null);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    if (hasClerkKeys) {
+      // Dynamically import Clerk SignIn component
+      import("@clerk/nextjs").then(({ SignIn }) => {
+        setSignInComponent(() => SignIn);
+        setIsLoading(false);
+      }).catch(() => {
+        setIsLoading(false);
+      });
+    } else {
+      setIsLoading(false);
+    }
+  }, []);
+
+  // Fallback UI when Clerk is not configured
+  if (!hasClerkKeys || !SignInComponent) {
+    return (
+      <div className="flex min-h-screen w-full bg-zinc-950 text-white">
+        <div className="flex w-full flex-col items-center justify-center p-8">
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="max-w-md w-full space-y-6"
+          >
+            <div className="flex items-center gap-2 text-2xl font-bold text-emerald-500 mb-8">
+              <Sparkles className="h-6 w-6" />
+              Finvx
+            </div>
+            
+            <div className="rounded-xl border border-yellow-500/30 bg-yellow-500/10 p-6 backdrop-blur">
+              <div className="flex items-start gap-3">
+                <AlertCircle className="h-5 w-5 text-yellow-500 mt-0.5" />
+                <div className="flex-1">
+                  <h3 className="font-semibold text-yellow-400 mb-2">Authentication Not Configured</h3>
+                  <p className="text-sm text-zinc-400 mb-4">
+                    Clerk authentication is not set up. To enable sign-in functionality, please configure your Clerk API keys in the <code className="text-xs bg-zinc-900 px-2 py-1 rounded">.env.local</code> file.
+                  </p>
+                  <div className="space-y-2 text-xs text-zinc-500">
+                    <p>1. Get keys from <a href="https://dashboard.clerk.com" target="_blank" rel="noopener noreferrer" className="text-emerald-400 hover:text-emerald-300 underline">dashboard.clerk.com</a></p>
+                    <p>2. Add them to your <code className="bg-zinc-900 px-1 py-0.5 rounded">.env.local</code> file</p>
+                    <p>3. Restart the development server</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className="flex gap-4">
+              <Link
+                href="/"
+                className="flex-1 rounded-xl bg-zinc-900 border border-zinc-800 px-6 py-3 text-center text-sm font-medium text-white hover:bg-zinc-800 transition-colors"
+              >
+                Back to Home
+              </Link>
+              <Link
+                href="/home"
+                className="flex-1 rounded-xl bg-emerald-500 px-6 py-3 text-center text-sm font-semibold text-white hover:bg-emerald-600 transition-colors"
+              >
+                Continue to App (Demo)
+              </Link>
+            </div>
+          </motion.div>
+        </div>
+      </div>
+    );
+  }
+
+  // Show loading state
+  if (isLoading) {
+    return (
+      <div className="flex min-h-screen w-full bg-zinc-950 text-white items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-emerald-500 mx-auto mb-4"></div>
+          <p className="text-zinc-400">Loading...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Render Clerk SignIn when configured
   return (
     <div className="flex min-h-screen w-full bg-zinc-950 text-white">
       {/* Left Panel - Branding & Creative */}
@@ -107,10 +200,10 @@ export default function Page() {
           animate={{ opacity: 1, scale: 1 }}
           transition={{ duration: 0.5, delay: 0.2 }}
         >
-          <SignIn 
+          <SignInComponent 
             routing="path" 
             path="/sign-in" 
-            fallbackRedirectUrl="/home"
+            fallbackRedirectUrl="/onboarding"
             signUpUrl="/sign-up"
           />
         </motion.div>

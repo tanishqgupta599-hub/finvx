@@ -3,6 +3,7 @@ import { Card, CardContent } from "@/components/ui/Card";
 import { useAppStore } from "@/state/app-store";
 import { Skeleton } from "@/components/ui/Skeleton";
 import { useEffect, useState } from "react";
+import { useCurrencyFormat } from "@/lib/currency";
 
 export function NetWorthSummaryCard() {
   const assets = useAppStore((s) => s.assets);
@@ -11,6 +12,7 @@ export function NetWorthSummaryCard() {
   const creditCards = useAppStore((s) => s.creditCards);
   const demoEnabled = useAppStore((s) => s.demoDataEnabled);
   const [mounted, setMounted] = useState(false);
+  const { format } = useCurrencyFormat();
 
   useEffect(() => {
     setMounted(true);
@@ -54,11 +56,11 @@ export function NetWorthSummaryCard() {
           Net worth snapshot
         </div>
         <div className="mt-2 text-2xl font-semibold tracking-tight text-white">
-          ₹{netWorth.toLocaleString("en-IN")}
+          {format(netWorth)}
         </div>
         <div className="mt-2 flex items-center justify-between text-xs text-cyan-100/80">
-          <span>Assets ₹{totalAssets.toLocaleString("en-IN")}</span>
-          <span>Debt ₹{(totalDebt + totalLiabilities + totalCreditCardDebt).toLocaleString("en-IN")}</span>
+          <span>Assets {format(totalAssets)}</span>
+          <span>Debt {format(totalDebt + totalLiabilities + totalCreditCardDebt)}</span>
         </div>
       </CardContent>
     </Card>

@@ -22,6 +22,10 @@ export function CardTitle({ children, className }: { children: React.ReactNode; 
   return <h3 className={`font-semibold leading-none tracking-tight ${className ?? ""}`}>{children}</h3>;
 }
 
+export function CardDescription({ children, className }: { children: React.ReactNode; className?: string }) {
+  return <p className={`text-sm text-zinc-400 ${className ?? ""}`}>{children}</p>;
+}
+
 export function CardContent({ children, className }: { children: React.ReactNode; className?: string }) {
   return <div className={`p-5 pt-0 ${className ?? ""}`}>{children}</div>;
 }

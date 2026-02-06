@@ -50,11 +50,11 @@ const ARCHETYPES: {
 
 export function PersonalitySelector() {
   const profile = useAppStore((s) => s.profile);
-  const setProfile = useAppStore((s) => s.setProfile);
+  const updateProfile = useAppStore((s) => s.updateProfile);
 
   const handleSelect = (risk: RiskProfile) => {
     if (!profile) return;
-    setProfile({ ...profile, riskProfile: risk });
+    updateProfile({ riskProfile: risk });
     toast.success(`Identity updated: ${ARCHETYPES.find(a => a.id === risk)?.label}`);
   };
 

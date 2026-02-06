@@ -1,26 +1,35 @@
 "use client";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Layers, CreditCard, Home, LineChart, Shield, Target, Wallet, AlertTriangle, ChartBar, Settings, Receipt, Fingerprint, Landmark, Bot, Users, RefreshCw, Calendar, TrendingUp } from "lucide-react";
+import { Layers, CreditCard, Home, LineChart, Shield, Target, Wallet, AlertTriangle, ChartBar, Settings, Receipt, Fingerprint, Landmark, Bot, Users, RefreshCw, Calendar, TrendingUp, Sparkles, Gift } from "lucide-react";
 import { useAppStore } from "@/state/app-store";
 
 const items = [
-  { href: "/home", label: "Home", icon: Home, flag: "home" as const },
+  // DAILY COMMAND CENTER
+  { href: "/home", label: "Command Center", icon: Home, flag: "home" as const },
   { href: "/oracle", label: "Oracle AI", icon: Bot, flag: "oracle" as const },
-  { href: "/spending", label: "Spending", icon: Layers, flag: "spending" as const },
-  { href: "/calendar", label: "Calendar", icon: Calendar, flag: "calendar" as const },
-  { href: "/cards", label: "Cards", icon: CreditCard, flag: "cards" as const },
-  { href: "/subscriptions", label: "Subscriptions", icon: RefreshCw, flag: "subscriptions" as const },
-  { href: "/expenses", label: "Expenses", icon: Receipt, flag: "expenses" as const },
+  { href: "/calendar", label: "Bills & Calendar", icon: Calendar, flag: "calendar" as const },
+  { href: "/expenses", label: "Transactions", icon: Receipt, flag: "expenses" as const },
+  { href: "/cards", label: "My Cards", icon: CreditCard, flag: "cards" as const },
+
+  // GROWTH & OPTIMIZATION
+  { href: "/optimizer", label: "Spend Optimizer", icon: Sparkles, flag: "optimizer" as const },
+  { href: "/rewards", label: "Rewards Maximizer", icon: Gift, flag: "rewards" as const },
   { href: "/investments", label: "Investments", icon: TrendingUp, flag: "investments" as const },
   { href: "/net-worth", label: "Net Worth", icon: LineChart, flag: "netWorth" as const },
-  { href: "/debt", label: "Debt", icon: Wallet, flag: "debt" as const },
   { href: "/goals", label: "Goals", icon: Target, flag: "goals" as const },
+
+  // MANAGEMENT & ANALYTICS
+  { href: "/spending", label: "Analytics & Trends", icon: Layers, flag: "spending" as const },
+  { href: "/subscriptions", label: "Subscriptions", icon: RefreshCw, flag: "subscriptions" as const },
+  { href: "/debt", label: "Debt Manager", icon: Wallet, flag: "debt" as const },
+  { href: "/tax", label: "Tax Optimization", icon: Landmark, flag: "tax" as const },
   { href: "/circles", label: "Circles", icon: Users, flag: "circles" as const },
-  { href: "/tax", label: "Tax", icon: Landmark, flag: "tax" as const },
-  { href: "/safety", label: "Safety", icon: Shield, flag: "safety" as const },
-  { href: "/scam", label: "Scam", icon: AlertTriangle, flag: "scam" as const },
-  { href: "/reports", label: "Reports", icon: ChartBar, flag: "reports" as const },
+
+  // PROTECTION & SYSTEM
+  { href: "/safety", label: "Safety Score", icon: Shield, flag: "safety" as const },
+  { href: "/scam", label: "Scam Detector", icon: AlertTriangle, flag: "scam" as const },
+  { href: "/reports", label: "Full Reports", icon: ChartBar, flag: "reports" as const },
   { href: "/profile", label: "Identity", icon: Fingerprint, flag: "profile" as const },
   { href: "/settings", label: "Settings", icon: Settings, flag: "settings" as const },
 ];

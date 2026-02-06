@@ -7,8 +7,13 @@ import { Select } from "@/components/ui/Select";
 import { Input } from "@/components/ui/Input";
 import type { ProfileMode } from "@/domain/models";
 import { toast } from "sonner";
-import { useState } from "react";
-import { useClerk, useUser } from "@clerk/nextjs";
+import { useState, useEffect } from "react";
+import { CountrySelector } from "@/components/profile/CountrySelector";
+import { CountryCode, getCountryConfig } from "@/lib/countries";
+// Conditionally import Clerk
+const hasClerkKeys = 
+  process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY && 
+  process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY !== 'pk_test_your_key_here';
 
 export default function Settings() {
   const demoDataEnabled = useAppStore((s) => s.demoDataEnabled);
@@ -23,28 +28,53 @@ export default function Settings() {
   const flags = useAppStore((s) => s.featureFlags);
   const setFlag = useAppStore((s) => s.setFeatureFlag);
   const profile = useAppStore((s) => s.profile);
-  const setProfile = useAppStore((s) => s.setProfile);
+  const updateProfile = useAppStore((s) => s.updateProfile);
   const notificationPreferences = useAppStore(
     (s) => s.notificationPreferences,
   );
   const updateNotificationPreferences = useAppStore(
     (s) => s.updateNotificationPreferences,
   );
-  const { user } = useUser();
-  const { signOut } = useClerk();
+  
+  // Safe Clerk usage - only if configured
+  const [user, setUser] = useState<any>(null);
+  const [signOut, setSignOut] = useState<((options?: any) => void) | null>(null);
+  
+  useEffect(() => {
+    if (hasClerkKeys) {
+      import("@clerk/nextjs")
+        .then((clerk) => {
+          // Try to use hooks if ClerkProvider is present
+          try {
+            // We can't call hooks here, so we'll handle signOut differently
+            setSignOut(() => (options?: any) => {
+              clerk.useClerk().signOut(options);
+            });
+          } catch (e) {
+            // Clerk not available
+          }
+        })
+        .catch(() => {
+          // Clerk not available
+        });
+    }
+  }, []);
 
   const [appLockEnabled, setAppLockEnabled] = useState(false);
   const [biometricEnabled, setBiometricEnabled] = useState(false);
 
   const updateProfileField = (field: "name" | "email" | "country", value: string) => {
-    const base = profile ?? {
-      id: "local-user",
-      name: "",
-      email: "",
-      mode,
-    };
-    const next = { ...base, [field]: value };
-    setProfile(next);
+    updateProfile({ [field]: value });
+  };
+
+  const updateCountry = (countryCode: CountryCode) => {
+    const countryConfig = getCountryConfig(countryCode);
+    updateProfile({
+      country: countryConfig.name,
+      countryCode: countryCode,
+      currency: countryConfig.currency,
+    });
+    toast.success(`Country updated to ${countryConfig.name}`);
   };
 
   const updateNotifications = (key: keyof typeof notificationPreferences, value: boolean) => {
@@ -83,10 +113,10 @@ export default function Settings() {
                 value={profile?.email ?? ""}
                 onChange={(e) => updateProfileField("email", e.target.value)}
               />
-              <Input
-                placeholder="Country"
-                value={profile?.country ?? ""}
-                onChange={(e) => updateProfileField("country", e.target.value)}
+              <CountrySelector
+                value={profile?.countryCode as CountryCode | undefined}
+                onChange={updateCountry}
+                showLabel={false}
               />
               <div className="mt-2 text-xs text-zinc-500">
                 Your chosen mode lightly changes how dense the app feels.
@@ -373,8 +403,12 @@ export default function Settings() {
               variant="secondary"
               className="text-red-400 hover:bg-red-500/10 hover:text-red-300"
               onClick={() => {
-                signOut({ redirectUrl: "/sign-in" });
-                toast.success("Logged out successfully");
+                if (signOut) {
+                  signOut({ redirectUrl: "/sign-in" });
+                  toast.success("Logged out successfully");
+                } else {
+                  toast.info("Sign out not available. Clerk not configured.");
+                }
               }}
             >
               Log out

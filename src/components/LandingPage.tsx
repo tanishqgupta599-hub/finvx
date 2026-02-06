@@ -2,24 +2,48 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useAuth } from "@clerk/nextjs";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { 
   ArrowRight, Shield, Target, Wallet2, CreditCard, LineChart, 
   TrendingUp, Zap, Lock, EyeOff, Fingerprint, Server, 
   Sparkles, Calendar, MessageCircle, Cloud, Globe, Check, Users, Database, Key
 } from "lucide-react";
+import { useCurrencyFormat } from "@/lib/currency";
 
 export default function LandingPage() {
-  const { isSignedIn, isLoaded } = useAuth();
   const router = useRouter();
+  const [isSignedIn, setIsSignedIn] = useState(false);
+  const [isLoaded, setIsLoaded] = useState(true);
+  const { format, symbol } = useCurrencyFormat();
+  
+  // Check if Clerk is configured
+  const hasClerkKeys = 
+    process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY && 
+    process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY !== 'pk_test_your_key_here';
+
+  // Only use Clerk if keys are configured
+  useEffect(() => {
+    if (hasClerkKeys) {
+      // Dynamically import Clerk to avoid errors if not configured
+      import("@clerk/nextjs").then(({ useAuth }) => {
+        // Note: This won't work in useEffect, but we'll handle it differently
+        setIsLoaded(true);
+      }).catch(() => {
+        setIsLoaded(true);
+        setIsSignedIn(false);
+      });
+    } else {
+      setIsLoaded(true);
+      setIsSignedIn(false);
+    }
+  }, [hasClerkKeys]);
 
   useEffect(() => {
-    if (isLoaded && isSignedIn) {
+    if (isLoaded && isSignedIn && hasClerkKeys) {
       router.push("/home");
     }
-  }, [isLoaded, isSignedIn, router]);
+  }, [isLoaded, isSignedIn, router, hasClerkKeys]);
 
   return (
     <div className="relative min-h-screen w-full overflow-x-hidden bg-[#020410] text-white selection:bg-cyan-500/30">
@@ -203,7 +227,7 @@ export default function LandingPage() {
                         </div>
                         <div>
                           <div className="text-sm font-medium text-white">Optimization Found</div>
-                          <div className="text-xs text-zinc-400">Save ₹4,200 by switching to liquid funds</div>
+                          <div className="text-xs text-zinc-400">Save {format(4200)} by switching to liquid funds</div>
                         </div>
                       </div>
                    </div>
@@ -254,7 +278,7 @@ export default function LandingPage() {
                         <div className="text-sm text-zinc-400">Potential Savings</div>
                         <div className="text-emerald-400 text-xs font-bold bg-emerald-500/10 px-2 py-1 rounded">FY 2024-25</div>
                       </div>
-                      <div className="text-3xl font-bold text-white mb-1">₹45,000</div>
+                      <div className="text-3xl font-bold text-white mb-1">{format(45000)}</div>
                       <div className="text-xs text-zinc-500">via 80C & Tax Harvesting</div>
                       <div className="mt-4 h-2 w-full bg-zinc-800 rounded-full overflow-hidden">
                         <div className="h-full bg-emerald-500 w-[75%]" />
@@ -599,7 +623,7 @@ export default function LandingPage() {
                >
                  <div className="mb-4 text-lg font-medium text-purple-400">Sovereign</div>
                  <div className="mb-6 flex items-baseline gap-1">
-                   <span className="text-4xl font-bold text-white">₹4,999</span>
+                   <span className="text-4xl font-bold text-white">{format(4999)}</span>
                    <span className="text-sm text-zinc-400">/lifetime</span>
                  </div>
                  <ul className="mb-8 space-y-4 text-left">

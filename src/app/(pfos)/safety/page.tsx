@@ -7,6 +7,7 @@ import { Sheet } from "@/components/ui/Sheet";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { Skeleton } from "@/components/ui/Skeleton";
 import { useAppStore } from "@/state/app-store";
+import { useCurrencyFormat } from "@/lib/currency";
 import { useMemo, useState } from "react";
 import { toast } from "sonner";
 import type { InsurancePolicy, EmergencyContact, VaultDocument } from "@/domain/models";
@@ -20,6 +21,7 @@ export default function Safety() {
   const vaultDocs = useAppStore((s) => s.vaultDocuments);
   const addVaultDoc = useAppStore((s) => s.addVaultDocument);
   const overwhelmMode = useAppStore((s) => s.overwhelmMode);
+  const { format } = useCurrencyFormat();
 
   const [policySheetOpen, setPolicySheetOpen] = useState(false);
   const [editingPolicyId, setEditingPolicyId] = useState<string | null>(null);
@@ -242,13 +244,13 @@ export default function Safety() {
             <div className="rounded-2xl bg-gradient-to-br from-cyan-500/15 via-sky-500/10 to-emerald-500/15 p-4 text-sm border border-cyan-500/30">
               <div className="text-xs text-cyan-100/80">Coverage (approx.)</div>
               <div className="mt-1 text-lg font-semibold text-white">
-                ₹{totalCoverage.toLocaleString("en-IN")}
+                {format(totalCoverage)}
               </div>
             </div>
             <div className="rounded-2xl bg-gradient-to-br from-amber-500/15 via-orange-500/10 to-rose-500/15 p-4 text-sm border border-amber-500/30">
               <div className="text-xs text-amber-100/80">Premiums per month</div>
               <div className="mt-1 text-lg font-semibold text-white">
-                ₹{totalPremium.toLocaleString("en-IN")}
+                {format(totalPremium)}
               </div>
             </div>
             <div className="rounded-2xl bg-gradient-to-br from-indigo-500/15 via-blue-500/10 to-cyan-500/15 p-4 text-sm border border-indigo-500/30">
@@ -293,11 +295,11 @@ export default function Safety() {
                         <div className="text-xs text-zinc-500">{p.provider}</div>
                       </div>
                       <div className="mt-2 text-lg font-semibold">
-                        ₹{p.premium.toLocaleString("en-IN")}/mo
+                        {format(p.premium)}/mo
                       </div>
                       {p.coverageAmount && (
                         <div className="mt-1 text-xs text-zinc-500">
-                          Coverage ₹{p.coverageAmount.toLocaleString("en-IN")}
+                          Coverage {format(p.coverageAmount)}
                         </div>
                       )}
                       {p.renewalDate && (
@@ -370,7 +372,7 @@ export default function Safety() {
                     Legacy safety pool
                   </div>
                   <div className="mt-1 text-base font-semibold text-white">
-                    ₹{lifeCoverage.toLocaleString("en-IN")} in life cover
+                    {format(lifeCoverage)} in life cover
                   </div>
                   <div className="mt-1 text-[11px] text-emerald-100/80">
                     Plus your assets net of debt as captured in other modules.
@@ -382,7 +384,7 @@ export default function Safety() {
                     Hospitalization Shield
                   </div>
                   <div className="mt-1 text-base font-semibold text-white">
-                    ₹{healthCoverage.toLocaleString("en-IN")} bill coverage
+                    {format(healthCoverage)} bill coverage
                   </div>
                   <div className="mt-1 text-[11px] text-cyan-100/80">
                     Direct cashless or reimbursement for hospital stays.

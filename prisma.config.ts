@@ -2,6 +2,36 @@
 // npm install --save-dev prisma dotenv
 import "dotenv/config";
 import { defineConfig } from "prisma/config";
+import fs from "fs";
+import path from "path";
+
+// Function to load env file manually
+const loadEnv = (filename: string) => {
+  try {
+    const envPath = path.resolve(process.cwd(), filename);
+    if (fs.existsSync(envPath)) {
+        const envFile = fs.readFileSync(envPath, "utf-8");
+        // Simple regex to parse env vars, focusing on DATABASE_URL
+        const match = envFile.match(/DATABASE_URL=["']?(.*?)["']?$/m);
+        if (match) {
+            process.env.DATABASE_URL = match[1].trim();
+            console.log(`Loaded DATABASE_URL manually from ${filename}`);
+            return true;
+        }
+    }
+  } catch (e) {
+    console.warn(`Failed to manually load ${filename}`, e);
+  }
+  return false;
+};
+
+// Fallback manual load if dotenv fails or doesn't pick up .env.local
+if (!process.env.DATABASE_URL) {
+  // Try .env.local first (higher priority)
+  if (!loadEnv(".env.local")) {
+     loadEnv(".env");
+  }
+}
 
 export default defineConfig({
   schema: "prisma/schema.prisma",

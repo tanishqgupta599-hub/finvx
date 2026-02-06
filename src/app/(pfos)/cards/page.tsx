@@ -5,9 +5,13 @@ import { Input } from "@/components/ui/Input";
 import { Select } from "@/components/ui/Select";
 import { Sheet } from "@/components/ui/Sheet";
 import { EmptyState } from "@/components/ui/EmptyState";
+import { EnhancedEmptyState } from "@/components/ui/EnhancedEmptyState";
+import { ExportButton } from "@/components/widgets/ExportButton";
+import { useCurrencyFormat } from "@/lib/currency";
 import { useAppStore } from "@/state/app-store";
 import { useMemo, useState } from "react";
 import { toast } from "sonner";
+import { Trash2 } from "lucide-react";
 import type { CreditCard as CreditCardModel } from "@/domain/models";
 import {
   Area,
@@ -23,7 +27,9 @@ export default function Cards() {
   const cards = useAppStore((s) => s.creditCards);
   const addCard = useAppStore((s) => s.addCreditCard);
   const updateCard = useAppStore((s) => s.updateCreditCard);
+  const removeCard = useAppStore((s) => s.removeCreditCard);
   const overwhelmMode = useAppStore((s) => s.overwhelmMode);
+  const { format } = useCurrencyFormat();
 
   const [selectedCardId] = useState<string | null>(null);
   const [amountInput, setAmountInput] = useState("");
@@ -40,7 +46,7 @@ export default function Cards() {
     pointsBalance: string;
     nextBillDate: string;
     annualFee: string;
-    rewardProgram: string;
+    name: string;
     billAmount?: string;
     billDueDate?: string;
   }>({
@@ -52,7 +58,7 @@ export default function Cards() {
     pointsBalance: "",
     nextBillDate: new Date().toISOString().slice(0, 10),
     annualFee: "",
-    rewardProgram: "",
+    name: "",
     billAmount: "",
     billDueDate: "",
   });
@@ -114,7 +120,7 @@ export default function Cards() {
       pointsBalance: "",
       nextBillDate: new Date().toISOString().slice(0, 10),
       annualFee: "",
-      rewardProgram: "",
+      name: "",
       billAmount: "",
       billDueDate: "",
     });
@@ -136,7 +142,7 @@ export default function Cards() {
         ? card.nextBillDate.slice(0, 10)
         : new Date().toISOString().slice(0, 10),
       annualFee: card.annualFee != null ? String(card.annualFee) : "",
-      rewardProgram: card.rewardProgram ?? "",
+      name: card.name || card.rewardProgram || "",
       billAmount: card.billAmount != null ? String(card.billAmount) : "",
       billDueDate: card.billDueDate ?? "",
     });
@@ -178,19 +184,27 @@ export default function Cards() {
       apr,
       pointsBalance,
       nextBillDate: cardForm.nextBillDate,
-      rewardProgram: cardForm.rewardProgram || undefined,
+      name: cardForm.name || undefined,
+      rewardProgram: undefined, // Clear legacy field
       annualFee,
       billAmount,
       billDueDate: cardForm.billDueDate || undefined,
     };
     if (editingCardId) {
       updateCard(card);
-      toast.success("Card updated");
     } else {
       addCard(card);
-      toast.success("Card added");
     }
     setCardSheetOpen(false);
+  };
+
+  const handleDeleteCard = () => {
+    if (!editingCardId) return;
+    // Simple confirm dialog - in a real app might use a proper modal
+    if (confirm("Are you sure you want to delete this card?")) {
+      removeCard(editingCardId);
+      setCardSheetOpen(false);
+    }
   };
 
   const runBestCardTool = () => {
@@ -210,9 +224,7 @@ export default function Cards() {
     const best = cards.find((c) => c.id === bestCardId);
     if (!best) return;
     setRecommendation(
-      `Use your ${best.brand.toUpperCase()} •••• ${best.last4} for ₹${amount.toLocaleString(
-        "en-IN",
-      )} of ${categoryInput}. It has one of your stronger reward/interest profiles right now.`,
+      `Use your ${best.brand.toUpperCase()} •••• ${best.last4} for ${format(amount)} of ${categoryInput}. It has one of your stronger reward/interest profiles right now.`,
     );
   };
 
@@ -229,22 +241,25 @@ export default function Cards() {
               </div>
               <div className="mt-1 text-xl font-semibold">Cards and rewards</div>
             </div>
-            <Button size="sm" variant="secondary" onClick={openNewCard}>
-              Add card
-            </Button>
+            <div className="flex items-center gap-2">
+              {hasCards && <ExportButton type="credit-cards" />}
+              <Button size="sm" variant="secondary" onClick={openNewCard}>
+                Add card
+              </Button>
+            </div>
           </div>
           {hasCards ? (
             <div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-4">
               <div className="rounded-2xl bg-gradient-to-br from-indigo-500/15 via-blue-500/10 to-cyan-500/15 p-4 text-sm border border-indigo-500/30 text-white">
                 <div className="text-xs text-indigo-100/80">Available Credit</div>
                 <div className="mt-1 text-lg font-semibold">
-                  ₹{totalAvailable.toLocaleString("en-IN")}
+                  {format(totalAvailable)}
                 </div>
               </div>
               <div className="rounded-2xl bg-gradient-to-br from-rose-500/15 via-orange-500/10 to-amber-500/15 p-4 text-sm border border-rose-500/30 text-white">
                 <div className="text-xs text-rose-100/80">Used (Debt)</div>
                 <div className="mt-1 text-lg font-semibold">
-                  ₹{totalBalance.toLocaleString("en-IN")}
+                  {format(totalBalance)}
                 </div>
                 <div className="mt-2 h-1.5 w-full rounded-full bg-rose-950/30">
                   <div
@@ -256,23 +271,24 @@ export default function Cards() {
               <div className="rounded-2xl bg-gradient-to-br from-emerald-500/15 via-teal-500/10 to-green-500/15 p-4 text-sm border border-emerald-500/30 text-white">
                 <div className="text-xs text-emerald-100/80">Total Limit</div>
                 <div className="mt-1 text-lg font-semibold">
-                  ₹{totalLimit.toLocaleString("en-IN")}
+                  {format(totalLimit)}
                 </div>
               </div>
               <div className="rounded-2xl bg-gradient-to-br from-fuchsia-500/15 via-purple-500/10 to-indigo-500/15 p-4 text-sm border border-fuchsia-500/30 text-white">
                 <div className="text-xs text-fuchsia-100/80">Reward points</div>
                 <div className="mt-1 text-lg font-semibold">
-                  {totalPoints.toLocaleString("en-IN")}
+                  {totalPoints.toLocaleString()}
                 </div>
               </div>
             </div>
           ) : (
             <div className="mt-4">
-              <EmptyState
-                title="No cards added"
-                description="Add your primary credit card to unlock rewards guidance."
-                primaryActionLabel="Add card"
-                onPrimaryAction={openNewCard}
+              <EnhancedEmptyState
+                type="cards"
+                primaryAction={{
+                  label: "Add your first credit card",
+                  onClick: openNewCard
+                }}
               />
             </div>
           )}
@@ -304,9 +320,7 @@ export default function Cards() {
                       tickLine={false}
                       axisLine={false}
                       tickFormatter={(value) =>
-                        `${Math.round(
-                          value as number,
-                        ).toLocaleString("en-IN")}`
+                        `${Math.round(value as number).toLocaleString()}`
                       }
                       tick={{ fontSize: 10 }}
                     />
@@ -322,7 +336,7 @@ export default function Cards() {
                           return [`${value}%`, "Utilisation"];
                         }
                         return [
-                          `${Math.round(value).toLocaleString("en-IN")}`,
+                          `${Math.round(value).toLocaleString()}`,
                           "Points",
                         ];
                       }}
@@ -413,11 +427,11 @@ export default function Cards() {
                     <div className="mt-4 grid grid-cols-2 text-sm">
                         <div>Limit</div>
                         <div className="text-right">
-                          ₹{(c.limit || 0).toLocaleString("en-IN")}
+                          {format(c.limit || 0)}
                         </div>
                         <div>Limit Utilized</div>
                         <div className="text-right">
-                          ₹{(c.balance || 0).toLocaleString("en-IN")}
+                          {format(c.balance || 0)}
                         </div>
                       </div>
                   </CardContent>
@@ -427,9 +441,12 @@ export default function Cards() {
             {!hasCards && (
               <Card>
                 <CardContent>
-                  <EmptyState
-                    title="Cards will appear here"
-                    description="Add a card to see utilisation and reward guidance."
+                  <EnhancedEmptyState
+                    type="cards"
+                    primaryAction={{
+                      label: "Add card",
+                      onClick: openNewCard
+                    }}
                   />
                 </CardContent>
               </Card>
@@ -518,7 +535,8 @@ export default function Cards() {
               <div className="text-sm font-medium">Card detail</div>
               {!selectedCard ? (
                 <div className="mt-3">
-                  <EmptyState
+                  <EnhancedEmptyState
+                    type="cards"
                     title="No card selected"
                     description="Tap a card above to see simple earn and fee insights."
                   />
@@ -532,16 +550,16 @@ export default function Cards() {
                     </div>
                   </div>
                   <div>
-                    <div className="text-xs text-zinc-500">Reward program</div>
+                    <div className="text-xs text-zinc-500">Card Name</div>
                     <div className="font-medium">
-                      {selectedCard.rewardProgram || "Standard"}
+                      {selectedCard.name || selectedCard.rewardProgram || "Standard"}
                     </div>
                   </div>
                   <div>
                     <div className="text-xs text-zinc-500">Annual fee</div>
                     <div className="font-medium">
                       {selectedCard.annualFee
-                        ? `₹${selectedCard.annualFee.toLocaleString("en-IN")}`
+                        ? format(selectedCard.annualFee)
                         : "None"}
                     </div>
                   </div>
@@ -627,15 +645,25 @@ export default function Cards() {
             }
           />
           <Input
-            placeholder="Reward Program Name (optional)"
-            value={cardForm.rewardProgram}
+            placeholder="Credit Card Name (e.g. Chase Sapphire Reserve)"
+            value={cardForm.name}
             onChange={(e) =>
-              setCardForm((f) => ({ ...f, rewardProgram: e.target.value }))
+              setCardForm((f) => ({ ...f, name: e.target.value }))
             }
           />
           <Button className="w-full" onClick={saveCard}>
             Save
           </Button>
+          {editingCardId && (
+            <Button 
+              variant="destructive" 
+              className="w-full" 
+              onClick={handleDeleteCard}
+            >
+              <Trash2 className="mr-2 h-4 w-4" />
+              Delete Card
+            </Button>
+          )}
         </div>
       </Sheet>
     </div>

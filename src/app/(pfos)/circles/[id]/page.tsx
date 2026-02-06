@@ -2,6 +2,7 @@
 "use client";
 
 import { useAppStore } from "@/state/app-store";
+import { useCurrencyFormat } from "@/lib/currency";
 import { useParams, useRouter } from "next/navigation";
 import { ArrowLeft, Calendar, User, Receipt } from "lucide-react";
 import Link from "next/link";
@@ -13,6 +14,7 @@ export default function CircleDetailsPage() {
   const { id } = useParams();
   const router = useRouter();
   const circle = useAppStore((s) => s.circles.find((c) => c.id === id));
+  const { format } = useCurrencyFormat();
   const currentUserId = "finos_x7A9KQ"; // Mock current user
 
   if (!circle) {
@@ -107,7 +109,7 @@ export default function CircleDetailsPage() {
                       <div>
                         <p className="font-medium text-white">{expense.description}</p>
                         <p className="text-xs text-zinc-500">
-                          {paidByMe ? "You" : paidByMember?.name} paid ₹{expense.amount.toLocaleString("en-IN")}
+                          {paidByMe ? "You" : paidByMember?.name} paid {format(expense.amount)}
                         </p>
                       </div>
                     </div>
@@ -121,14 +123,14 @@ export default function CircleDetailsPage() {
                             const lent = expense.amount - (mySplit?.amount || 0);
                             return (
                               <div className="text-xs font-medium text-emerald-400">
-                                you lent ₹{lent.toLocaleString("en-IN")}
+                                you lent {format(lent)}
                               </div>
                             );
                          } else {
                             // Someone else paid, show my share (debt)
                             return (
                               <div className="text-xs font-medium text-orange-400">
-                                you owe ₹{mySplit?.amount.toLocaleString("en-IN") || 0}
+                                you owe {format(mySplit?.amount || 0)}
                               </div>
                             );
                          }

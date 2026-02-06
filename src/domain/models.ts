@@ -28,6 +28,7 @@ export interface UserProfile {
   incomeStreams?: IncomeStream[];
   ageRange?: AgeRange;
   country?: string;
+  countryCode?: 'US' | 'CA' | 'IN' | 'AE';
   currency?: string;
   hasDependents?: boolean;
   employment?: EmploymentType;
@@ -37,6 +38,7 @@ export interface UserProfile {
   insuranceTerm?: boolean;
   emergencyContactName?: string;
   emergencyContactPhone?: string;
+  onboardingCompleted?: boolean;
 }
 
 export interface Asset {

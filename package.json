@@ -12,6 +12,7 @@
   "dependencies": {
     "@clerk/nextjs": "^6.36.8",
     "@clerk/themes": "^2.4.48",
+    "@google/generative-ai": "^0.24.1",
     "@prisma/adapter-pg": "^7.2.0",
     "@prisma/client": "^7.2.0",
     "@radix-ui/react-dialog": "^1.1.15",
@@ -37,6 +38,7 @@
     "@types/pg": "^8.16.0",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "dotenv": "^17.2.4",
     "eslint": "^9",
     "eslint-config-next": "16.1.2",
     "prisma": "^7.2.0",

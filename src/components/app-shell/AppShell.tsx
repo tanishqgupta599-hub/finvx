@@ -6,32 +6,31 @@ import { TopBar } from "./TopBar";
 import { useAppStore } from "@/state/app-store";
 import { useEffect } from "react";
 import { FloatingAI } from "@/components/ui/FloatingAI";
-import { useUser } from "@clerk/nextjs";
+import { AuthenticatedDataFetcher } from "./AuthenticatedDataFetcher";
+
+// Check if Clerk is configured
+const hasClerkKeys = 
+  process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY && 
+  process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY !== 'pk_test_your_key_here';
 
 export function AppShell({ children }: { children: React.ReactNode }) {
-  const { user, isLoaded } = useUser();
   const demoDataEnabled = useAppStore((s) => s.demoDataEnabled);
   const seedDemoData = useAppStore((s) => s.seedDemoData);
-  const syncUser = useAppStore((s) => s.syncUser);
-  const fetchUserData = useAppStore((s) => s.fetchUserData);
 
   useEffect(() => {
     if (demoDataEnabled) seedDemoData();
   }, [demoDataEnabled, seedDemoData]);
 
-  // Sync and fetch user data when logged in
+  // If no Clerk, enable demo data by default for testing
   useEffect(() => {
-    if (isLoaded && user) {
-      // Sync user with DB (ensure record exists)
-      syncUser().then(() => {
-        // Fetch full data
-        fetchUserData();
-      });
+    if (!hasClerkKeys && !demoDataEnabled) {
+      seedDemoData();
     }
-  }, [isLoaded, user, syncUser, fetchUserData]);
+  }, [demoDataEnabled, seedDemoData]);
 
   return (
     <div className="relative min-h-dvh w-full overflow-hidden bg-[#020410] text-zinc-100">
+      {hasClerkKeys && <AuthenticatedDataFetcher />}
       <div className="relative z-10">
         <TopBar />
         

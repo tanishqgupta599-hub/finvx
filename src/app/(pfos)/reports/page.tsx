@@ -1,235 +1,410 @@
 "use client";
-import { Card, CardContent } from "@/components/ui/Card";
+
+import { useMemo, useState } from "react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import { Select } from "@/components/ui/Select";
-import { EmptyState } from "@/components/ui/EmptyState";
-import { Skeleton } from "@/components/ui/Skeleton";
 import { useAppStore } from "@/state/app-store";
-import { useMemo, useState } from "react";
-import { toast } from "sonner";
+import { ExportButton } from "@/components/widgets/ExportButton";
+import { LineChart, Line, AreaChart, Area, BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, Legend } from "recharts";
+import { Download, TrendingUp, TrendingDown, DollarSign, Calendar } from "lucide-react";
+import { motion } from "framer-motion";
+import { useCurrencyFormat } from "@/lib/currency";
+import { formatCompact } from "@/lib/countries";
 
-type MonthOption = {
-  key: string;
-  label: string;
-};
+export default function ReportsPage() {
+  const transactions = useAppStore((s) => s.transactions);
+  const assets = useAppStore((s) => s.assets);
+  const loans = useAppStore((s) => s.loans);
+  const creditCards = useAppStore((s) => s.creditCards);
+  const subscriptions = useAppStore((s) => s.subscriptions);
+  const goals = useAppStore((s) => s.goals);
+  const profile = useAppStore((s) => s.profile);
+  const { format, symbol, countryCode } = useCurrencyFormat();
 
-export default function Reports() {
-  const reports = useAppStore((s) => s.autopsyReports);
-  const overwhelmMode = useAppStore((s) => s.overwhelmMode);
+  const [timeRange, setTimeRange] = useState<'7d' | '30d' | '90d' | '1y' | 'all'>('30d');
 
-  const monthOptions: MonthOption[] = useMemo(() => {
-    const options: MonthOption[] = [];
-    const seen = new Set<string>();
-    reports.forEach((r) => {
-      const d = new Date(r.date);
-      if (Number.isNaN(d.getTime())) return;
-      const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
-      if (seen.has(key)) return;
-      seen.add(key);
-      const label = d.toLocaleDateString(undefined, {
-        month: "long",
-        year: "numeric",
+  // Calculate net worth over time
+  const netWorthData = useMemo(() => {
+    const now = new Date();
+    const months: { month: string; assets: number; debt: number; netWorth: number }[] = [];
+    
+    for (let i = 11; i >= 0; i--) {
+      const date = new Date(now.getFullYear(), now.getMonth() - i, 1);
+      const monthLabel = date.toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
+      
+      // For demo, we'll use current values (in real app, would track historical)
+      const totalAssets = assets.reduce((sum, a) => sum + a.value, 0);
+      const totalDebt = loans.reduce((sum, l) => sum + l.balance, 0) + 
+                       creditCards.reduce((sum, c) => sum + c.balance, 0);
+      
+      months.push({
+        month: monthLabel,
+        assets: totalAssets,
+        debt: totalDebt,
+        netWorth: totalAssets - totalDebt
       });
-      options.push({ key, label });
+    }
+    
+    return months;
+  }, [assets, loans, creditCards]);
+
+  // Income vs Expenses
+  const incomeExpenseData = useMemo(() => {
+    const monthly = new Map<string, { income: number; expenses: number; label: string }>();
+    
+    transactions.forEach(txn => {
+      const date = new Date(txn.date);
+      const key = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+      const label = date.toLocaleDateString('en-US', { month: 'short' });
+      
+      if (!monthly.has(key)) {
+        monthly.set(key, { income: 0, expenses: 0, label });
+      }
+      
+      const data = monthly.get(key)!;
+      if (txn.amount > 0) {
+        data.income += txn.amount;
+      } else {
+        data.expenses += Math.abs(txn.amount);
+      }
     });
-    options.sort((a, b) => (a.key < b.key ? 1 : -1));
-    return options;
-  }, [reports]);
 
-  const [selectedMonth, setSelectedMonth] = useState<string>(
-    monthOptions[0]?.key ?? "all",
-  );
+    return Array.from(monthly.values())
+      .sort((a, b) => a.label.localeCompare(b.label))
+      .slice(-6);
+  }, [transactions]);
 
-  const filteredReports = useMemo(() => {
-    if (selectedMonth === "all") return reports;
-    return reports.filter((r) => {
-      const d = new Date(r.date);
-      if (Number.isNaN(d.getTime())) return false;
-      const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(
-        2,
-        "0",
-      )}`;
-      return key === selectedMonth;
-    });
-  }, [reports, selectedMonth]);
+  // Category breakdown
+  const categoryData = useMemo(() => {
+    const categoryMap = new Map<string, number>();
+    
+    transactions
+      .filter(t => t.amount < 0)
+      .forEach(txn => {
+        const category = txn.category;
+        categoryMap.set(category, (categoryMap.get(category) || 0) + Math.abs(txn.amount));
+      });
 
-  const leakPatterns = useMemo(() => {
-    const patterns: { label: string; description: string; intensity: string }[] = [
-      {
-        label: "Subscription creep",
-        description:
-          "Multiple small recurring subscriptions that together feel heavier than expected.",
-        intensity: "medium",
-      },
-      {
-        label: "Lifestyle drift",
-        description:
-          "Spends that grew quietly with income, especially in food delivery and convenience.",
-        intensity: "medium",
-      },
-      {
-        label: "Interest and late fees",
-        description:
-          "Charges from credit cards or loans that could be reduced with tiny structural tweaks.",
-        intensity: "high",
-      },
-    ];
-    if (!reports.length) return patterns;
-    return patterns;
-  }, [reports.length]);
+    return Array.from(categoryMap.entries())
+      .map(([category, amount]) => ({ category, amount }))
+      .sort((a, b) => b.amount - a.amount)
+      .slice(0, 8);
+  }, [transactions]);
 
-  const handleExport = () => {
-    const monthLabel =
-      selectedMonth === "all"
-        ? "overall period"
-        : monthOptions.find((m) => m.key === selectedMonth)?.label ??
-          "selected month";
-    toast.message("Export report (stub)", {
-      description: `In a future version this would download a calm PDF for ${monthLabel}.`,
-    });
-  };
-
-  const hasReports = reports.length > 0;
+  const totalAssets = assets.reduce((sum, a) => sum + a.value, 0);
+  const totalDebt = loans.reduce((sum, l) => sum + l.balance, 0) + 
+                   creditCards.reduce((sum, c) => sum + c.balance, 0);
+  const netWorth = totalAssets - totalDebt;
+  
+  const totalIncome = transactions
+    .filter(t => t.amount > 0)
+    .reduce((sum, t) => sum + t.amount, 0);
+  const totalExpenses = transactions
+    .filter(t => t.amount < 0)
+    .reduce((sum, t) => sum + Math.abs(t.amount), 0);
+  const savings = totalIncome - totalExpenses;
 
   return (
-    <div className="space-y-4">
-      <Card>
-        <CardContent>
-          <div className="flex flex-wrap items-center justify-between gap-3">
-            <div>
-              <div className="text-xs uppercase tracking-wide text-zinc-500">
-                Reports
-              </div>
-              <div className="mt-1 text-xl font-semibold">Monthly autopsy</div>
-            </div>
-            <div className="flex flex-wrap items-center gap-2 text-xs">
-              <Select
-                value={selectedMonth}
-                onChange={(v) => setSelectedMonth(v)}
-              >
-                {monthOptions.map((m) => (
-                  <option key={m.key} value={m.key}>
-                    {m.label}
-                  </option>
-                ))}
-                <option value="all">All months</option>
-              </Select>
-              <Button size="sm" variant="secondary" onClick={handleExport}>
-                Export report
-              </Button>
-            </div>
-          </div>
-          {hasReports ? (
-            <div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-3">
-              <div className="rounded-2xl bg-zinc-900 p-4 text-sm">
-                <div className="text-xs text-zinc-500">Insights Captured</div>
-                <div className="mt-1 text-lg font-semibold text-zinc-100">
-                  {reports.length}
-                </div>
-              </div>
-              <div className="rounded-2xl bg-zinc-900 p-4 text-sm">
-                <div className="text-xs text-zinc-500">Periods with Autopsies</div>
-                <div className="mt-1 text-lg font-semibold text-emerald-500">
-                  {reports.length}
-                </div>
-              </div>
-              <div className="rounded-2xl bg-zinc-900 p-4 text-sm">
-                <div className="text-xs text-zinc-500">Energy Leaks Tracked</div>
-                <div className="mt-1 text-lg font-semibold text-amber-500">
-                  24
-                </div>
-              </div>
-            </div>
-          ) : (
-            <div className="mt-4">
-              <EmptyState
-                title="No autopsy reports yet"
-                description="At the end of a month, you can do a short, kind review here."
-              />
-            </div>
-          )}
-          {!overwhelmMode && hasReports && (
-            <div className="mt-6">
-              <div className="text-xs text-zinc-500">
-                Cash flow and mood blend over time (placeholder)
-              </div>
-              <div className="mt-2 h-24 rounded-2xl bg-gradient-to-r from-zinc-100 to-zinc-50 dark:from-zinc-900 dark:to-zinc-800">
-                <Skeleton className="h-full w-full rounded-2xl opacity-40" />
-              </div>
-            </div>
-          )}
-        </CardContent>
-      </Card>
+    <div className="space-y-6 pb-20">
+      {/* Header */}
+      <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+        <div>
+          <h1 className="text-3xl font-bold text-white">Financial Reports</h1>
+          <p className="text-zinc-400">Comprehensive insights into your financial health</p>
+        </div>
+        <div className="flex items-center gap-2">
+          <Select
+            value={timeRange}
+            onChange={(v) => setTimeRange(v as any)}
+          >
+            <option value="7d">Last 7 days</option>
+            <option value="30d">Last 30 days</option>
+            <option value="90d">Last 90 days</option>
+            <option value="1y">Last year</option>
+            <option value="all">All time</option>
+          </Select>
+          <ExportButton type="full-report" />
+        </div>
+      </div>
 
-      <Card>
-        <CardContent>
-          <div className="text-sm font-medium">Insights for this view</div>
-          <div className="mt-3 grid grid-cols-1 gap-3 md:grid-cols-2">
-            {filteredReports.map((r) => (
-              <Card key={r.id}>
-                <CardContent>
-                  <div className="flex items-center justify-between">
-                    <div className="text-sm font-medium">{r.title}</div>
-                    <div className="text-xs text-zinc-500">
-                      {new Date(r.date).toLocaleDateString()}
-                    </div>
+      {/* Summary Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}>
+          <Card className="bg-gradient-to-br from-emerald-500/20 to-teal-500/10 border-emerald-500/30">
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <div className="text-xs text-emerald-200/80 mb-1">Net Worth</div>
+                  <div className="text-2xl font-bold text-white">
+                    {format(netWorth)}
                   </div>
-                  <div className="mt-2 text-sm text-zinc-600 dark:text-zinc-400">
-                    {r.summary}
-                  </div>
-                  <div className="mt-3 grid gap-2 text-xs">
-                    {r.findings.map((f) => (
-                      <div
-                        key={f}
-                        className="rounded-xl bg-zinc-900 p-2"
-                      >
-                        {f}
-                      </div>
-                    ))}
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-            {!filteredReports.length && (
-              <div className="md:col-span-2">
-                <EmptyState
-                  title="Nothing for this month yet"
-                  description="Switch to All months or wait for the next monthly reflection."
-                />
+                </div>
+                <TrendingUp className="h-8 w-8 text-emerald-400" />
               </div>
-            )}
-          </div>
-        </CardContent>
-      </Card>
+            </CardContent>
+          </Card>
+        </motion.div>
 
-      {!overwhelmMode && (
-        <Card>
+        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}>
+          <Card className="bg-gradient-to-br from-blue-500/20 to-cyan-500/10 border-blue-500/30">
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <div className="text-xs text-blue-200/80 mb-1">Total Assets</div>
+                  <div className="text-2xl font-bold text-white">
+                    {format(totalAssets)}
+                  </div>
+                </div>
+                <DollarSign className="h-8 w-8 text-blue-400" />
+              </div>
+            </CardContent>
+          </Card>
+        </motion.div>
+
+        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}>
+          <Card className="bg-gradient-to-br from-rose-500/20 to-orange-500/10 border-rose-500/30">
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <div className="text-xs text-rose-200/80 mb-1">Total Debt</div>
+                  <div className="text-2xl font-bold text-white">
+                    {format(totalDebt)}
+                  </div>
+                </div>
+                <TrendingDown className="h-8 w-8 text-rose-400" />
+              </div>
+            </CardContent>
+          </Card>
+        </motion.div>
+
+        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }}>
+          <Card className="bg-gradient-to-br from-purple-500/20 to-pink-500/10 border-purple-500/30">
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <div className="text-xs text-purple-200/80 mb-1">Savings Rate</div>
+                  <div className="text-2xl font-bold text-white">
+                    {totalIncome > 0 ? ((savings / totalIncome) * 100).toFixed(0) : 0}%
+                  </div>
+                </div>
+                <Calendar className="h-8 w-8 text-purple-400" />
+              </div>
+            </CardContent>
+          </Card>
+        </motion.div>
+      </div>
+
+      {/* Charts Grid */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Net Worth Trend */}
+        <Card className="bg-zinc-900/50 border-white/10">
+          <CardHeader>
+            <CardTitle className="text-sm font-medium text-zinc-400">Net Worth Trend</CardTitle>
+          </CardHeader>
           <CardContent>
-            <div className="text-sm font-medium">Leak analysis</div>
-            <div className="mt-1 text-xs text-zinc-500">
-              Soft patterns where money and energy quietly leak away.
-            </div>
-            <div className="mt-3 grid grid-cols-1 gap-3 md:grid-cols-3 text-xs">
-              {leakPatterns.map((p) => (
-                <div
-                  key={p.label}
-                  className="rounded-xl bg-zinc-900 p-3"
-                >
-                  <div className="flex items-center justify-between">
-                    <div className="font-medium">{p.label}</div>
-                    <div className="text-zinc-500">
-                      {p.intensity === "high"
-                        ? "High impact"
-                        : "Gentle but real"}
-                    </div>
-                  </div>
-                  <div className="mt-1 text-zinc-500">{p.description}</div>
-                </div>
-              ))}
+            <ResponsiveContainer width="100%" height={300}>
+              <AreaChart data={netWorthData}>
+                <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" />
+                <XAxis 
+                  dataKey="month" 
+                  stroke="#71717a"
+                  tick={{ fill: '#71717a', fontSize: 11 }}
+                />
+                <YAxis 
+                  stroke="#71717a"
+                  tick={{ fill: '#71717a', fontSize: 11 }}
+                  tickFormatter={(value) => formatCompact(value, countryCode)}
+                />
+                <Tooltip
+                  contentStyle={{
+                    backgroundColor: "rgba(2, 6, 23, 0.95)",
+                    border: "1px solid rgba(34, 211, 238, 0.3)",
+                    borderRadius: 8
+                  }}
+                  formatter={(value: any) => format(Number(value))}
+                />
+                <Area 
+                  type="monotone" 
+                  dataKey="netWorth" 
+                  stroke="#22c55e" 
+                  fill="#22c55e" 
+                  fillOpacity={0.2}
+                />
+                <Area 
+                  type="monotone" 
+                  dataKey="assets" 
+                  stroke="#3b82f6" 
+                  fill="#3b82f6" 
+                  fillOpacity={0.1}
+                />
+              </AreaChart>
+            </ResponsiveContainer>
+          </CardContent>
+        </Card>
+
+        {/* Income vs Expenses */}
+        <Card className="bg-zinc-900/50 border-white/10">
+          <CardHeader>
+            <CardTitle className="text-sm font-medium text-zinc-400">Income vs Expenses</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <ResponsiveContainer width="100%" height={300}>
+              <BarChart data={incomeExpenseData}>
+                <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" />
+                <XAxis 
+                  dataKey="label" 
+                  stroke="#71717a"
+                  tick={{ fill: '#71717a', fontSize: 11 }}
+                />
+                <YAxis 
+                  stroke="#71717a"
+                  tick={{ fill: '#71717a', fontSize: 11 }}
+                  tickFormatter={(value) => formatCompact(value, countryCode)}
+                />
+                <Tooltip
+                  contentStyle={{
+                    backgroundColor: "rgba(2, 6, 23, 0.95)",
+                    border: "1px solid rgba(34, 211, 238, 0.3)",
+                    borderRadius: 8
+                  }}
+                  formatter={(value: any) => format(Number(value))}
+                />
+                <Legend />
+                <Bar dataKey="income" fill="#22c55e" radius={[4, 4, 0, 0]} />
+                <Bar dataKey="expenses" fill="#ef4444" radius={[4, 4, 0, 0]} />
+              </BarChart>
+            </ResponsiveContainer>
+          </CardContent>
+        </Card>
+
+        {/* Category Breakdown */}
+        <Card className="bg-zinc-900/50 border-white/10 lg:col-span-2">
+          <CardHeader>
+            <CardTitle className="text-sm font-medium text-zinc-400">Spending by Category</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <ResponsiveContainer width="100%" height={300}>
+              <BarChart data={categoryData} layout="vertical">
+                <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" />
+                <XAxis 
+                  type="number"
+                  stroke="#71717a"
+                  tick={{ fill: '#71717a', fontSize: 11 }}
+                  tickFormatter={(value) => `${symbol}${(value / 1000).toFixed(0)}k`}
+                />
+                <YAxis 
+                  type="category"
+                  dataKey="category"
+                  stroke="#71717a"
+                  tick={{ fill: '#71717a', fontSize: 11 }}
+                  width={100}
+                />
+                <Tooltip
+                  contentStyle={{
+                    backgroundColor: "rgba(2, 6, 23, 0.95)",
+                    border: "1px solid rgba(34, 211, 238, 0.3)",
+                    borderRadius: 8
+                  }}
+                  formatter={(value: any) => format(Number(value))}
+                />
+                <Bar dataKey="amount" fill="#06b6d4" radius={[0, 4, 4, 0]} />
+              </BarChart>
+            </ResponsiveContainer>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Detailed Stats */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        <Card className="bg-zinc-900/50 border-white/10">
+          <CardHeader>
+            <CardTitle className="text-sm font-medium text-zinc-400">Income Summary</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-3">
+              <div className="flex justify-between">
+                <span className="text-sm text-zinc-400">Total Income</span>
+                <span className="text-sm font-semibold text-emerald-400">
+                  {format(totalIncome)}
+                </span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-sm text-zinc-400">Transactions</span>
+                <span className="text-sm text-white">
+                  {transactions.filter(t => t.amount > 0).length}
+                </span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-sm text-zinc-400">Average per Transaction</span>
+                <span className="text-sm text-white">
+                  {transactions.filter(t => t.amount > 0).length > 0
+                    ? format(totalIncome / transactions.filter(t => t.amount > 0).length)
+                    : format(0)}
+                </span>
+              </div>
             </div>
           </CardContent>
         </Card>
-      )}
+
+        <Card className="bg-zinc-900/50 border-white/10">
+          <CardHeader>
+            <CardTitle className="text-sm font-medium text-zinc-400">Expense Summary</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-3">
+              <div className="flex justify-between">
+                <span className="text-sm text-zinc-400">Total Expenses</span>
+                <span className="text-sm font-semibold text-rose-400">
+                  {format(totalExpenses)}
+                </span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-sm text-zinc-400">Transactions</span>
+                <span className="text-sm text-white">
+                  {transactions.filter(t => t.amount < 0).length}
+                </span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-sm text-zinc-400">Average per Transaction</span>
+                <span className="text-sm text-white">
+                  {transactions.filter(t => t.amount < 0).length > 0
+                    ? format(totalExpenses / transactions.filter(t => t.amount < 0).length)
+                    : format(0)}
+                </span>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="bg-zinc-900/50 border-white/10">
+          <CardHeader>
+            <CardTitle className="text-sm font-medium text-zinc-400">Savings Analysis</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-3">
+              <div className="flex justify-between">
+                <span className="text-sm text-zinc-400">Net Savings</span>
+                <span className={`text-sm font-semibold ${savings >= 0 ? 'text-emerald-400' : 'text-rose-400'}`}>
+                  {format(savings)}
+                </span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-sm text-zinc-400">Savings Rate</span>
+                <span className="text-sm text-white">
+                  {totalIncome > 0 ? ((savings / totalIncome) * 100).toFixed(1) : 0}%
+                </span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-sm text-zinc-400">Monthly Average</span>
+                <span className="text-sm text-white">
+                  {format(savings / 12)}
+                </span>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
     </div>
   );
 }

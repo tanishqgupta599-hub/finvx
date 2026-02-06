@@ -4,11 +4,50 @@ import * as Dialog from "@radix-ui/react-dialog";
 import { Bell, MessageCircle, Search, User } from "lucide-react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { UserButton } from "@clerk/nextjs";
 import { ThemeToggle } from "../ui/ThemeToggle";
 import { Input } from "../ui/Input";
 import { useAppStore } from "@/state/app-store";
 import { toast } from "sonner";
+import { NotificationCenter } from "@/components/widgets/NotificationCenter";
+import { GlobalSearch } from "@/components/widgets/GlobalSearch";
+import { HelpCenter } from "@/components/widgets/HelpCenter";
+import { useCurrencyFormat } from "@/lib/currency";
+
+// Check if Clerk is configured
+const hasClerkKeys = 
+  process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY && 
+  process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY !== 'pk_test_your_key_here';
+
+// Safe UserButton component
+function SafeUserButton() {
+  const [UserButtonComponent, setUserButtonComponent] = useState<any>(null);
+
+  useEffect(() => {
+    if (!hasClerkKeys) return;
+
+    import("@clerk/nextjs")
+      .then((clerk) => {
+        setUserButtonComponent(() => clerk.UserButton);
+      })
+      .catch(() => {
+        // Clerk not available
+      });
+  }, []);
+
+  if (UserButtonComponent) {
+    return <UserButtonComponent afterSignOutUrl="/sign-in" />;
+  }
+
+  return (
+    <Link
+      href="/sign-in"
+      className="flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3 py-1.5 text-xs text-zinc-400 hover:bg-white/10 hover:text-white transition-colors"
+    >
+      <User className="h-4 w-4" />
+      <span>Sign In</span>
+    </Link>
+  );
+}
 
 type Command = {
   id: string;
@@ -26,6 +65,7 @@ export function TopBar() {
 
   const router = useRouter();
   const pathname = usePathname();
+  const { format } = useCurrencyFormat();
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState("");
   const [feedbackOpen, setFeedbackOpen] = useState(false);
@@ -84,7 +124,7 @@ export function TopBar() {
       .map((t) => ({
         id: `txn-${t.id}`,
         title: t.description,
-        subtitle: `Transaction · ₹${Math.abs(t.amount).toLocaleString("en-IN")} · ${new Date(t.date).toLocaleDateString()}`,
+        subtitle: `Transaction · ${format(Math.abs(t.amount))} · ${new Date(t.date).toLocaleDateString()}`,
         onSelect: () => router.push("/spending"),
       }));
 
@@ -121,31 +161,9 @@ export function TopBar() {
           Finvx
         </Link>
         <div className="ml-auto flex items-center gap-2">
-          {/* Mobile Search Trigger */}
-          <button
-            type="button"
-            onClick={() => setOpen(true)}
-            className="flex md:hidden items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3 py-1.5 text-xs text-zinc-400 mr-1"
-          >
-            <Search className="h-3.5 w-3.5" />
-            <span>Search</span>
-          </button>
-
-          <button
-            type="button"
-            aria-label="Open command palette"
-            onClick={() => setOpen(true)}
-            className="hidden md:block rounded-full p-2 text-zinc-400 transition-colors hover:bg-white/10 hover:text-white"
-          >
-            <Search className="h-5 w-5" />
-          </button>
-          <button
-            type="button"
-            aria-label="Notifications"
-            className="rounded-full p-2 text-zinc-400 transition-colors hover:bg-white/10 hover:text-white"
-          >
-            <Bell className="h-5 w-5" />
-          </button>
+          <GlobalSearch />
+          <NotificationCenter />
+          <HelpCenter />
           <button
             type="button"
             aria-label="Share feedback"
@@ -159,55 +177,10 @@ export function TopBar() {
             Feedback
           </button>
           <ThemeToggle />
-          <UserButton afterSignOutUrl="/sign-in" />
+          <SafeUserButton />
         </div>
       </div>
 
-      <Dialog.Root open={open} onOpenChange={setOpen}>
-        <Dialog.Portal>
-          <Dialog.Overlay className="fixed inset-0 z-50 bg-black/60 backdrop-blur-md data-[state=open]:animate-fade-in data-[state=closed]:animate-fade-out" />
-          <Dialog.Content className="fixed left-1/2 top-20 z-50 w-full max-w-lg -translate-x-1/2 rounded-2xl border border-white/10 bg-zinc-900/90 p-3 shadow-2xl shadow-cyan-500/10 outline-none backdrop-blur-xl">
-            <div className="flex items-center gap-2 rounded-xl bg-white/5 px-3 py-2 text-sm">
-              <Search className="h-4 w-4 text-zinc-500" />
-              <Input
-                autoFocus
-                placeholder="Jump to a module or search transactions, cards, policies…"
-                value={query}
-                onChange={(event) => setQuery(event.target.value)}
-                className="h-8 border-none bg-transparent px-0 text-base md:text-sm text-white placeholder:text-zinc-600 focus-visible:ring-0"
-              />
-              <span className="ml-auto hidden text-[10px] text-zinc-500 sm:inline-flex">Ctrl + K</span>
-            </div>
-            <div className="mt-3 max-h-72 overflow-y-auto rounded-xl bg-black/20 p-2 text-sm">
-              {commands.length === 0 ? (
-                <div className="px-2 py-3 text-xs text-zinc-500">
-                  No matches yet. Try a module name, card brand, or policy provider.
-                </div>
-              ) : (
-                <ul className="grid gap-1">
-                  {commands.map((command) => (
-                    <li key={command.id}>
-                      <button
-                        type="button"
-                        onClick={() => {
-                          command.onSelect();
-                          setOpen(false);
-                        }}
-                        className="flex w-full flex-col items-start rounded-lg px-3 py-2 text-left text-sm transition-colors hover:bg-white/10 text-zinc-300 hover:text-white"
-                      >
-                        <span className="font-medium text-cyan-400">{command.title}</span>
-                        {command.subtitle && (
-                          <span className="mt-0.5 text-xs text-zinc-500">{command.subtitle}</span>
-                        )}
-                      </button>
-                    </li>
-                  ))}
-                </ul>
-              )}
-            </div>
-          </Dialog.Content>
-        </Dialog.Portal>
-      </Dialog.Root>
 
       <Dialog.Root open={feedbackOpen} onOpenChange={setFeedbackOpen}>
         <Dialog.Portal>

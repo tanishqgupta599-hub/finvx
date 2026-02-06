@@ -2,6 +2,7 @@ import { ActionItem, AutopsyReport, Asset, CreditCard, EmergencyContact, Goal, I
 import { TaxProfile, TaxLot, TaxActionPlan } from "@/domain/tax";
 import { ExpenseCircle } from "@/domain/circles";
 import { Friend } from "@/domain/friends";
+import { formatCurrency, CountryCode } from "@/lib/countries";
 
 export function demoProfile(): UserProfile {
   return {
@@ -11,6 +12,7 @@ export function demoProfile(): UserProfile {
     avatarUrl: "/avatar.png",
     mode: "Balanced",
     country: "India",
+    countryCode: "IN",
     currency: "INR",
     ageRange: "25-34",
     employment: "salaried",
@@ -49,8 +51,8 @@ export function demoSubscriptions(): Subscription[] {
 
 export function demoCards(): CreditCard[] {
   return [
-    { id: "c1", brand: "visa", last4: "1234", limit: 120000, balance: 18000, apr: 19.99, pointsBalance: 4200, nextBillDate: new Date().toISOString(), rewardProgram: "Everyday Rewards", annualFee: 500 },
-    { id: "c2", brand: "amex", last4: "5544", limit: 80000, balance: 2500, apr: 17.5, pointsBalance: 8200, nextBillDate: new Date().toISOString(), rewardProgram: "Platinum Travel", annualFee: 5000 },
+    { id: "c1", name: "HDFC Regalia Gold", brand: "visa", last4: "1234", limit: 120000, balance: 18000, apr: 19.99, pointsBalance: 4200, nextBillDate: new Date().toISOString(), rewardProgram: "Everyday Rewards", annualFee: 500 },
+    { id: "c2", name: "Amex Platinum Travel", brand: "amex", last4: "5544", limit: 80000, balance: 2500, apr: 17.5, pointsBalance: 8200, nextBillDate: new Date().toISOString(), rewardProgram: "Platinum Travel", annualFee: 5000 },
   ];
 }
 
@@ -81,13 +83,13 @@ export function demoAutopsyReports(): AutopsyReport[] {
   ];
 }
 
-export function demoActions(): ActionItem[] {
+export function demoActions(countryCode: CountryCode = 'IN'): ActionItem[] {
   return [
     {
       id: "act-review-subscriptions",
       title: "Trim subscriptions",
       reason: "Two streaming plans overlap each month",
-      impactLabel: "saves ₹800/mo",
+      impactLabel: `saves ${formatCurrency(800, countryCode)}/mo`,
       safe: true,
       status: "new",
       steps: [
@@ -179,7 +181,7 @@ export function demoTaxLots(): TaxLot[] {
   ];
 }
 
-export function demoTaxActionPlan(): TaxActionPlan {
+export function demoTaxActionPlan(countryCode: CountryCode = 'IN'): TaxActionPlan {
   return {
     id: "tap_demo_1",
     generatedAt: new Date().toISOString(),
@@ -188,7 +190,7 @@ export function demoTaxActionPlan(): TaxActionPlan {
       {
         id: "step1",
         title: "Max out Section 80C",
-        description: "Invest ₹50,000 more in ELSS or PPF to reach the ₹1.5L limit.",
+        description: `Invest ${formatCurrency(50000, countryCode)} more in ELSS or PPF to reach the ${formatCurrency(150000, countryCode)} limit.`,
         deadline: "2025-03-31",
         potentialSaving: 15600,
         type: "investment",

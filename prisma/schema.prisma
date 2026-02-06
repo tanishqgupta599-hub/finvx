@@ -172,6 +172,7 @@ model User {
   profession            String?
   ageRange              String?
   country               String?
+  countryCode           String?
   currency              String?           @default("INR")
   hasDependents         Boolean?
   employment            EmploymentType?
@@ -181,6 +182,7 @@ model User {
   insuranceTerm         Boolean?
   emergencyContactName  String?
   emergencyContactPhone String?
+  onboardingCompleted   Boolean           @default(false)
   createdAt             DateTime          @default(now())
   updatedAt             DateTime          @updatedAt
 
@@ -205,6 +207,7 @@ model User {
   ownedCircles    ExpenseCircle[]   @relation("CircleOwner")
   
   taxProfile      TaxProfile?
+  taxActionPlan   TaxActionPlan?
 }
 
 model TaxProfile {
@@ -380,6 +383,31 @@ model AutopsyReport {
   findings  String[] // Array of strings
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+}
+
+model TaxActionPlan {
+  id                    String          @id @default(cuid())
+  userId                String          @unique
+  user                  User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  totalPotentialSavings Float
+  generatedAt           DateTime        @default(now())
+  
+  steps                 TaxActionStep[]
+}
+
+model TaxActionStep {
+  id              String        @id @default(cuid())
+  planId          String
+  plan            TaxActionPlan @relation(fields: [planId], references: [id], onDelete: Cascade)
+  title           String
+  description     String
+  potentialSaving Float
+  type            String
+  impactLevel     String
+  actionUrl       String?
+  isCompleted     Boolean       @default(false)
+  status          String?
+  deadline        String?
 }
 
 model ActionItem {

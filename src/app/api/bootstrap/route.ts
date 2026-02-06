@@ -48,16 +48,27 @@ export async function GET() {
           }
         },
         taxProfile: true,
+        taxActionPlan: {
+          include: {
+            steps: true,
+          }
+        },
       },
     });
 
     if (!dbUser) {
       // If user not found in DB but authenticated, return empty state instead of 404
       // This allows the frontend to initialize with clean state while waiting for sync
+      // Get name from Clerk - use firstName + lastName, or email username as fallback
+      const clerkName = `${user.firstName || ""} ${user.lastName || ""}`.trim();
+      const fallbackName = user.emailAddresses[0]?.emailAddress?.split("@")[0] || "User";
+      const displayName = clerkName || fallbackName;
+      
       return NextResponse.json({
         clerkId: user.id,
         email: user.emailAddresses[0]?.emailAddress,
-        name: `${user.firstName || ""} ${user.lastName || ""}`.trim(),
+        name: displayName,
+        avatarUrl: user.imageUrl,
         assets: [],
         loans: [],
         liabilities: [],

@@ -4,9 +4,11 @@ import Link from "next/link";
 import { ArrowLeft, Check, Sparkles, MessageCircle, Cloud, FileText, Smartphone, Lock, Mic, TrendingUp, Shield, Calendar, Zap, Crown } from "lucide-react";
 import { motion } from "framer-motion";
 import { useState } from "react";
+import { useCurrencyFormat } from "@/lib/currency";
 
 export default function PricingPage() {
   const [billing, setBilling] = useState<"monthly" | "yearly">("yearly");
+  const { format } = useCurrencyFormat();
 
   return (
     <div className="min-h-screen bg-[#020410] text-white selection:bg-cyan-500/30">
@@ -69,7 +71,7 @@ export default function PricingPage() {
             <div className="mb-6">
               <h3 className="text-xl font-semibold mb-2 text-zinc-400">Legacy</h3>
               <div className="flex items-baseline gap-1">
-                <span className="text-4xl font-bold">₹0</span>
+                <span className="text-4xl font-bold">{format(0)}</span>
                 <span className="text-zinc-500">/forever</span>
               </div>
               <p className="text-zinc-400 mt-4 text-sm leading-relaxed">
@@ -120,13 +122,13 @@ export default function PricingPage() {
                 </h3>
                 <div className="flex items-baseline gap-1">
                   <span className="text-5xl font-bold text-white">
-                    {billing === "yearly" ? "₹999" : "₹129"}
+                    {billing === "yearly" ? format(999) : format(129)}
                   </span>
                   <span className="text-zinc-500">/{billing === "yearly" ? "year" : "month"}</span>
                 </div>
                 {billing === "yearly" && (
                    <div className="text-xs text-emerald-400 mt-1 font-medium">
-                     Equivalent to ₹83/month
+                     Equivalent to {format(83)}/month
                    </div>
                 )}
                 <p className="text-zinc-400 mt-4 text-sm leading-relaxed">
@@ -175,7 +177,7 @@ export default function PricingPage() {
                 Sovereign <Crown className="h-4 w-4" />
               </h3>
               <div className="flex items-baseline gap-1">
-                <span className="text-4xl font-bold text-white">₹4,999</span>
+                <span className="text-4xl font-bold text-white">{format(4999)}</span>
                 <span className="text-zinc-500">/lifetime</span>
               </div>
               <p className="text-zinc-400 mt-4 text-sm leading-relaxed">

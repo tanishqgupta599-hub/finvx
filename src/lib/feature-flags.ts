@@ -17,6 +17,8 @@ export type FeatureFlags = {
   calendar: boolean;
   investments: boolean;
   settings: boolean;
+  optimizer: boolean;
+  rewards: boolean;
 };
 
 export const defaultFeatureFlags: FeatureFlags = {
@@ -38,5 +40,7 @@ export const defaultFeatureFlags: FeatureFlags = {
   calendar: true,
   investments: true,
   settings: true,
+  optimizer: true,
+  rewards: true,
 };
 

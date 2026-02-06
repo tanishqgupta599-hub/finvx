@@ -4,6 +4,7 @@ import { useState } from "react";
 import { motion } from "framer-motion";
 import { Zap, Calendar, CreditCard, AlertTriangle, Plus, Trash2, ExternalLink, RefreshCw } from "lucide-react";
 import { useAppStore } from "@/state/app-store";
+import { useCurrencyFormat } from "@/lib/currency";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
@@ -15,6 +16,7 @@ import { Subscription } from "@/domain/models";
 
 export default function SubscriptionsPage() {
   const { subscriptions, addSubscription, updateSubscription } = useAppStore();
+  const { format } = useCurrencyFormat();
   const [isAddOpen, setIsAddOpen] = useState(false);
   const [newSub, setNewSub] = useState<Partial<Subscription>>({
     cadence: "monthly",
@@ -121,7 +123,7 @@ export default function SubscriptionsPage() {
             <Zap className="h-4 w-4 text-orange-500" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-white">₹{monthlyBurn.toLocaleString("en-IN")}</div>
+            <div className="text-2xl font-bold text-white">{format(monthlyBurn)}</div>
             <p className="text-xs text-zinc-500">projected monthly cost</p>
           </CardContent>
         </Card>
@@ -131,7 +133,7 @@ export default function SubscriptionsPage() {
             <Calendar className="h-4 w-4 text-cyan-500" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-white">₹{yearlyBurn.toLocaleString("en-IN")}</div>
+            <div className="text-2xl font-bold text-white">{format(yearlyBurn)}</div>
             <p className="text-xs text-zinc-500">total annual commitment</p>
           </CardContent>
         </Card>
@@ -176,7 +178,7 @@ export default function SubscriptionsPage() {
                         {isToday ? "Due today" : `In ${daysLeft} days`}
                       </div>
                     </div>
-                    <div className="font-semibold text-white">₹{sub.amount}</div>
+                    <div className="font-semibold text-white">{format(sub.amount)}</div>
                   </div>
                 );
               })}
@@ -210,7 +212,7 @@ export default function SubscriptionsPage() {
                       <p className="text-sm text-zinc-400 capitalize">{sub.cadence} plan</p>
                     </div>
                     <div className="text-right">
-                      <div className="text-lg font-bold text-white">₹{sub.amount}</div>
+                      <div className="text-lg font-bold text-white">{format(sub.amount)}</div>
                       <div className="text-xs text-zinc-500">per {sub.cadence.replace("ly", "")}</div>
                     </div>
                   </div>

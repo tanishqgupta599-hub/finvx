@@ -1,9 +1,10 @@
 "use client";
 
 import { useState } from "react";
-import { format, startOfMonth, endOfMonth, eachDayOfInterval, isSameMonth, isSameDay, addMonths, subMonths, parseISO, isValid } from "date-fns";
+import { format as formatDate, startOfMonth, endOfMonth, eachDayOfInterval, isSameMonth, isSameDay, addMonths, subMonths, parseISO, isValid } from "date-fns";
 import { ChevronLeft, ChevronRight, CreditCard, RefreshCw, Wallet, Calendar as CalendarIcon, Plus, Trash2 } from "lucide-react";
 import { useAppStore } from "@/state/app-store";
+import { useCurrencyFormat } from "@/lib/currency";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/Button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/Card";
@@ -15,6 +16,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { CalendarEvent } from "@/domain/models";
 
 export default function CalendarPage() {
+  const { format, symbol } = useCurrencyFormat();
   const { subscriptions, creditCards, loans, transactions, calendarEvents, addCalendarEvent, removeCalendarEvent } = useAppStore();
   const [currentDate, setCurrentDate] = useState(new Date());
   const [isAddOpen, setIsAddOpen] = useState(false);
@@ -160,13 +162,17 @@ export default function CalendarPage() {
                 </div>
                 <div className="grid gap-2">
                   <Label htmlFor="amount">Amount</Label>
-                  <Input 
-                    id="amount" 
-                    type="number" 
-                    value={newAmount} 
-                    onChange={(e) => setNewAmount(e.target.value)} 
-                    placeholder="0.00"
-                  />
+                  <div className="relative">
+                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-400">{symbol}</span>
+                    <Input 
+                      id="amount" 
+                      type="number" 
+                      value={newAmount} 
+                      onChange={(e) => setNewAmount(e.target.value)} 
+                      placeholder="0.00"
+                      className="pl-8"
+                    />
+                  </div>
                 </div>
                 <div className="grid gap-2">
                   <Label htmlFor="date">Date</Label>
@@ -211,7 +217,7 @@ export default function CalendarPage() {
               <ChevronLeft className="h-4 w-4" />
             </Button>
             <div className="min-w-[120px] text-center font-semibold text-white">
-              {format(currentDate, "MMMM yyyy")}
+              {formatDate(currentDate, "MMMM yyyy")}
             </div>
             <Button variant="ghost" size="icon" onClick={nextMonth}>
               <ChevronRight className="h-4 w-4" />
@@ -248,7 +254,7 @@ export default function CalendarPage() {
                 "flex h-6 w-6 items-center justify-center rounded-full text-xs font-medium",
                 isToday ? "bg-cyan-500 text-black" : "text-zinc-400 group-hover:text-white"
               )}>
-                {format(day, "d")}
+                {formatDate(day, "d")}
               </span>
 
               <div className="flex flex-col gap-1 mt-1">
@@ -266,7 +272,7 @@ export default function CalendarPage() {
                     >
                       <div className="flex flex-col overflow-hidden">
                         <span className="truncate font-medium">{event.title}</span>
-                        <span className="opacity-80">₹{event.amount}</span>
+                        <span className="opacity-80">{format(event.amount)}</span>
                       </div>
                       
                       {event.isCustom && (
@@ -297,7 +303,7 @@ export default function CalendarPage() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-white">
-              ₹{days.reduce((acc, day) => acc + getEventsForDay(day).filter(e => e.type === 'income').reduce((sum, e) => sum + e.amount, 0), 0).toLocaleString('en-IN')}
+              {format(days.reduce((acc, day) => acc + getEventsForDay(day).filter(e => e.type === 'income').reduce((sum, e) => sum + e.amount, 0), 0))}
             </div>
             <p className="text-xs text-zinc-500">expected this month</p>
           </CardContent>
@@ -310,7 +316,7 @@ export default function CalendarPage() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-white">
-              ₹{days.reduce((acc, day) => acc + getEventsForDay(day).filter(e => e.type === 'bill' || e.type === 'sub').reduce((sum, e) => sum + e.amount, 0), 0).toLocaleString('en-IN')}
+              {format(days.reduce((acc, day) => acc + getEventsForDay(day).filter(e => e.type === 'bill' || e.type === 'sub').reduce((sum, e) => sum + e.amount, 0), 0))}
             </div>
             <p className="text-xs text-zinc-500">due this month</p>
           </CardContent>

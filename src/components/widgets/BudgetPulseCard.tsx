@@ -4,11 +4,13 @@ import { useAppStore } from "@/state/app-store";
 import { Skeleton } from "@/components/ui/Skeleton";
 import { useEffect, useState } from "react";
 import { EXPENSE_CATEGORIES } from "@/domain/models";
+import { useCurrencyFormat } from "@/lib/currency";
 
 export function BudgetPulseCard() {
   const transactions = useAppStore((s) => s.transactions);
   const demoEnabled = useAppStore((s) => s.demoDataEnabled);
   const [mounted, setMounted] = useState(false);
+  const { format } = useCurrencyFormat();
 
   useEffect(() => {
     setMounted(true);
@@ -88,14 +90,14 @@ export function BudgetPulseCard() {
           Monthly Burn Rate
         </div>
         <div className="mt-2 text-2xl font-semibold tracking-tight text-white">
-          ₹{currentMonthExpenses.toLocaleString("en-IN", { maximumFractionDigits: 0 })}
+          {format(currentMonthExpenses)}
         </div>
         <div className="mt-2 text-xs text-violet-100/80">
-          ~₹{dailyAverage.toFixed(0)}/day • Proj: ₹{projected.toLocaleString("en-IN", { maximumFractionDigits: 0 })}
+          ~{format(dailyAverage)}/day • Proj: {format(projected)}
         </div>
         {topAmount > 0 && (
            <div className="mt-1 text-xs text-violet-200/60">
-             Top: {topCategoryLabel} (₹{topAmount.toLocaleString("en-IN")})
+             Top: {topCategoryLabel} ({format(topAmount)})
            </div>
         )}
       </CardContent>

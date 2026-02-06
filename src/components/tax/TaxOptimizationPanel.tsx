@@ -4,23 +4,30 @@
 import { useAppStore } from "@/state/app-store";
 import { IndiaTaxEngine } from "@/lib/tax/engine";
 import { TaxProfile, TaxSectionUsage } from "@/domain/tax";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo, useRef } from "react";
 import { CheckCircle, Circle, ShieldCheck } from "lucide-react";
 import { motion } from "framer-motion";
+import { useCurrencyFormat } from "@/lib/currency";
 
 export function TaxOptimizationPanel() {
   const storedTaxProfile = useAppStore((s) => s.taxProfile);
+  const { format } = useCurrencyFormat();
   
-  // Default fallback
-  const taxProfile: TaxProfile = storedTaxProfile || {
-     id: "default",
-     jurisdiction: "IN",
-     regime: "new",
-     fiscalYearStart: "2024-04-01",
-     filingStatus: "individual"
-   };
+  // Memoize taxProfile to prevent recreation on every render
+  const taxProfile: TaxProfile = useMemo(() => {
+    return storedTaxProfile || {
+      id: "default",
+      jurisdiction: "IN",
+      regime: "new",
+      fiscalYearStart: "2024-04-01",
+      filingStatus: "individual"
+    };
+  }, [storedTaxProfile]);
 
   const [sections, setSections] = useState<TaxSectionUsage[]>([]);
+  
+  // Use ref to track previous sections to prevent unnecessary updates
+  const prevSectionsRef = useRef<string>("");
 
   useEffect(() => {
     if (!taxProfile || taxProfile.jurisdiction !== "IN") return;
@@ -39,7 +46,18 @@ export function TaxOptimizationPanel() {
                  section.sectionId === "80D" ? 10000 : section.limit
     }));
 
-    setSections(sectionsWithUsage);
+    // Create a stable key to compare sections
+    const sectionsKey = JSON.stringify({
+      regime: taxProfile.regime,
+      count: sectionsWithUsage.length,
+      totalUsed: sectionsWithUsage.reduce((acc, curr) => acc + curr.used, 0)
+    });
+
+    // Only update if sections actually changed
+    if (prevSectionsRef.current !== sectionsKey) {
+      prevSectionsRef.current = sectionsKey;
+      setSections(sectionsWithUsage);
+    }
   }, [taxProfile]);
 
   return (
@@ -56,7 +74,7 @@ export function TaxOptimizationPanel() {
         </div>
         <div className="text-right">
           <div className="text-2xl font-bold text-white">
-            ₹{sections.reduce((acc, curr) => acc + curr.used, 0).toLocaleString()}
+            {format(sections.reduce((acc, curr) => acc + curr.used, 0))}
           </div>
           <p className="text-xs text-zinc-500">Total Deductions Claimed</p>
         </div>
@@ -88,10 +106,10 @@ export function TaxOptimizationPanel() {
 
               <div className="mb-2 flex items-end justify-between text-sm">
                 <span className="font-medium text-zinc-300">
-                  ₹{section.used.toLocaleString()}
+                  {format(section.used)}
                 </span>
                 <span className="text-zinc-500">
-                  of ₹{section.limit.toLocaleString()}
+                  of {format(section.limit)}
                 </span>
               </div>
 
@@ -110,7 +128,7 @@ export function TaxOptimizationPanel() {
                 <div className="mt-3 flex items-center justify-between text-[10px] text-zinc-500">
                   <span>Available to save:</span>
                   <span className="font-bold text-emerald-400">
-                    ₹{section.remaining.toLocaleString()}
+                    {format(section.remaining)}
                   </span>
                 </div>
               )}

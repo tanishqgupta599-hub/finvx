@@ -3,11 +3,13 @@ import { Card, CardContent } from "@/components/ui/Card";
 import { useAppStore } from "@/state/app-store";
 import { Skeleton } from "@/components/ui/Skeleton";
 import { useEffect, useState } from "react";
+import { useCurrencyFormat } from "@/lib/currency";
 
 export function SubscriptionLeakCard() {
   const subs = useAppStore((s) => s.subscriptions);
   const demoEnabled = useAppStore((s) => s.demoDataEnabled);
   const [mounted, setMounted] = useState(false);
+  const { format } = useCurrencyFormat();
 
   useEffect(() => {
     setMounted(true);
@@ -58,10 +60,10 @@ export function SubscriptionLeakCard() {
           Subscription leak
         </div>
         <div className="mt-2 text-2xl font-semibold tracking-tight text-white">
-          ₹{monthly.toFixed(0)}/mo
+          {format(monthly)}/mo
         </div>
         <div className="mt-1 text-xs text-fuchsia-50/90">
-          Largest: {top.name} at ₹{top.amount.toFixed(0)}/mo
+          Largest: {top.name} at {format(top.amount)}/mo
         </div>
       </CardContent>
     </Card>

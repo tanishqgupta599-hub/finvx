@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useAppStore } from "@/state/app-store";
-import { Plus, X, CreditCard, Trash2, Check } from "lucide-react";
+import { Plus, X, CreditCard, Trash2, Check, Pencil } from "lucide-react";
 import { toast } from "sonner";
 import { Input } from "@/components/ui/Input";
 import { Button } from "@/components/ui/Button";
@@ -11,17 +11,19 @@ import { Button } from "@/components/ui/Button";
 export function CardsManager() {
   const cards = useAppStore((s) => s.creditCards);
   const addCard = useAppStore((s) => s.addCreditCard);
+  const updateCard = useAppStore((s) => s.updateCreditCard);
   const removeCard = useAppStore((s) => s.removeCreditCard);
   const profile = useAppStore((s) => s.profile);
   
   const [isAdding, setIsAdding] = useState(false);
+  const [editingId, setEditingId] = useState<string | null>(null);
   const [newCard, setNewCard] = useState({
     name: "",
     limit: "",
     balance: "",
   });
 
-  const handleAdd = () => {
+  const handleSave = () => {
     if (!newCard.name || !newCard.limit) {
       toast.error("Please enter a card name and limit");
       return;
@@ -45,19 +47,49 @@ export function CardsManager() {
       return;
     }
 
-    addCard({
-      id: crypto.randomUUID(),
-      name: newCard.name,
-      limit: limit,
-      balance: balance,
-      brand: "other",
-      last4: "0000",
-      apr: 0 
-    });
+    if (editingId) {
+      const originalCard = cards.find(c => c.id === editingId);
+      if (originalCard) {
+        updateCard({
+          ...originalCard,
+          name: newCard.name,
+          limit: limit,
+          balance: balance,
+        });
+        toast.success("Credit card updated");
+      }
+    } else {
+      addCard({
+        id: crypto.randomUUID(),
+        name: newCard.name,
+        limit: limit,
+        balance: balance,
+        brand: "other",
+        last4: "0000",
+        apr: 0 
+      });
+      toast.success("Credit card added");
+    }
 
     setIsAdding(false);
+    setEditingId(null);
     setNewCard({ name: "", limit: "", balance: "" });
-    toast.success("Credit card added");
+  };
+
+  const handleEdit = (card: any) => {
+    setNewCard({
+      name: card.name || "",
+      limit: String(card.limit),
+      balance: String(card.balance),
+    });
+    setEditingId(card.id);
+    setIsAdding(true);
+  };
+
+  const handleCancel = () => {
+    setIsAdding(false);
+    setEditingId(null);
+    setNewCard({ name: "", limit: "", balance: "" });
   };
 
   return (
@@ -68,7 +100,11 @@ export function CardsManager() {
           Credit Cards
         </h3>
         <button 
-          onClick={() => setIsAdding(true)}
+          onClick={() => {
+            setIsAdding(true);
+            setEditingId(null);
+            setNewCard({ name: "", limit: "", balance: "" });
+          }}
           className="flex items-center gap-1 rounded-full border border-white/10 bg-white/5 px-2 py-1 text-xs text-zinc-400 hover:bg-white/10 hover:text-white transition-colors"
         >
           <Plus className="h-3 w-3" /> Add Card
@@ -85,8 +121,10 @@ export function CardsManager() {
           >
             <div className="rounded-xl border border-dashed border-purple-500/30 bg-purple-500/5 p-4 space-y-3">
               <div className="flex items-center justify-between">
-                <div className="text-xs font-medium text-purple-400">New Credit Card</div>
-                <button onClick={() => setIsAdding(false)} className="text-zinc-500 hover:text-white">
+                <div className="text-xs font-medium text-purple-400">
+                  {editingId ? "Edit Credit Card" : "New Credit Card"}
+                </div>
+                <button onClick={handleCancel} className="text-zinc-500 hover:text-white">
                   <X className="h-3 w-3" />
                 </button>
               </div>
@@ -123,8 +161,8 @@ export function CardsManager() {
                 </div>
               </div>
 
-              <Button onClick={handleAdd} size="sm" className="w-full bg-purple-500/20 text-purple-400 hover:bg-purple-500/30">
-                <Check className="mr-1 h-3 w-3" /> Add Card
+              <Button onClick={handleSave} size="sm" className="w-full bg-purple-500/20 text-purple-400 hover:bg-purple-500/30">
+                <Check className="mr-1 h-3 w-3" /> {editingId ? "Save Changes" : "Add Card"}
               </Button>
             </div>
           </motion.div>
@@ -154,12 +192,20 @@ export function CardsManager() {
                       </div>
                     </div>
                   </div>
-                  <button 
-                    onClick={() => removeCard(card.id)}
-                    className="opacity-0 group-hover:opacity-100 text-zinc-600 hover:text-red-400 transition-opacity"
-                  >
-                    <Trash2 className="h-3.5 w-3.5" />
-                  </button>
+                  <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                    <button 
+                      onClick={() => handleEdit(card)}
+                      className="p-1.5 text-zinc-600 hover:text-white transition-colors"
+                    >
+                      <Pencil className="h-3.5 w-3.5" />
+                    </button>
+                    <button 
+                      onClick={() => removeCard(card.id)}
+                      className="p-1.5 text-zinc-600 hover:text-red-400 transition-colors"
+                    >
+                      <Trash2 className="h-3.5 w-3.5" />
+                    </button>
+                  </div>
                 </div>
 
                 <div className="space-y-1">

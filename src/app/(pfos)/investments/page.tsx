@@ -12,11 +12,15 @@ import { Input } from "@/components/ui/Input";
 import { Select } from "@/components/ui/Select";
 import { Cell, Pie, PieChart as RePieChart, ResponsiveContainer, Tooltip, Legend } from "recharts";
 import { Asset } from "@/domain/models";
+import { ExportButton } from "@/components/widgets/ExportButton";
+import { EnhancedEmptyState } from "@/components/ui/EnhancedEmptyState";
+import { useCurrencyFormat } from "@/lib/currency";
 
 export default function InvestmentsPage() {
   const { assets, addAsset } = useAppStore();
   const [isAddOpen, setIsAddOpen] = useState(false);
   const [newAsset, setNewAsset] = useState<Partial<Asset>>({ type: "investment" });
+  const { format } = useCurrencyFormat();
 
   const investments = assets.filter(a => a.type === "investment" || a.type === "property");
   const totalValue = investments.reduce((acc, curr) => acc + curr.value, 0);
@@ -60,12 +64,14 @@ export default function InvestmentsPage() {
           <h1 className="text-3xl font-bold text-white">Investment Portfolio</h1>
           <p className="text-zinc-400">Track your wealth creation journey.</p>
         </div>
-        <Dialog open={isAddOpen} onOpenChange={setIsAddOpen}>
-          <DialogTrigger asChild>
-            <Button className="bg-cyan-500 text-black hover:bg-cyan-400">
-              <Plus className="mr-2 h-4 w-4" /> Add Investment
-            </Button>
-          </DialogTrigger>
+        <div className="flex items-center gap-2">
+          {investments.length > 0 && <ExportButton type="investments" />}
+          <Dialog open={isAddOpen} onOpenChange={setIsAddOpen}>
+            <DialogTrigger asChild>
+              <Button className="bg-cyan-500 text-black hover:bg-cyan-400">
+                <Plus className="mr-2 h-4 w-4" /> Add Investment
+              </Button>
+            </DialogTrigger>
           <DialogContent className="border-zinc-800 bg-zinc-950 sm:max-w-[425px]">
             <DialogHeader>
               <DialogTitle>Add Investment</DialogTitle>
@@ -107,6 +113,7 @@ export default function InvestmentsPage() {
             </Button>
           </DialogContent>
         </Dialog>
+        </div>
       </div>
 
       {/* Stats Cards */}
@@ -117,7 +124,7 @@ export default function InvestmentsPage() {
             <TrendingUp className="h-4 w-4 text-cyan-500" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-white">₹{totalValue.toLocaleString("en-IN")}</div>
+            <div className="text-2xl font-bold text-white">{format(totalValue)}</div>
             <p className="text-xs text-green-500 flex items-center gap-1">
               <ArrowUpRight className="h-3 w-3" /> +12.5% (mock)
             </p>
@@ -153,14 +160,22 @@ export default function InvestmentsPage() {
                     <Tooltip 
                       contentStyle={{ backgroundColor: '#18181b', border: '1px solid #27272a', borderRadius: '8px' }}
                       itemStyle={{ color: '#fff' }}
-                      formatter={(value: any) => [`₹${value.toLocaleString("en-IN")}`, "Value"]}
+                      formatter={(value: any) => [format(value), "Value"]}
                     />
                     <Legend />
                   </RePieChart>
                 </ResponsiveContainer>
              ) : (
-                <div className="flex h-full items-center justify-center text-zinc-500">
-                  No investment data available
+                <div className="flex h-full items-center justify-center">
+                  <EnhancedEmptyState
+                    type="investments"
+                    title="No investment data"
+                    description="Add investments to see your portfolio allocation"
+                    primaryAction={{
+                      label: "Add Investment",
+                      onClick: () => setIsAddOpen(true)
+                    }}
+                  />
                 </div>
              )}
           </CardContent>
@@ -185,14 +200,18 @@ export default function InvestmentsPage() {
                     </div>
                   </div>
                   <div className="text-right">
-                    <div className="font-semibold text-white">₹{inv.value.toLocaleString("en-IN")}</div>
+                    <div className="font-semibold text-white">{format(inv.value)}</div>
                   </div>
                 </div>
               ))}
               {investments.length === 0 && (
-                <div className="py-8 text-center text-sm text-zinc-500">
-                  Start adding investments to see them here.
-                </div>
+                <EnhancedEmptyState
+                  type="investments"
+                  primaryAction={{
+                    label: "Add Investment",
+                    onClick: () => setIsAddOpen(true)
+                  }}
+                />
               )}
             </div>
           </CardContent>

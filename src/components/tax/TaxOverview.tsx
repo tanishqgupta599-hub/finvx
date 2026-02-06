@@ -3,33 +3,42 @@
 
 import { useAppStore } from "@/state/app-store";
 import { ArrowDown, ArrowUp, DollarSign, Info, TrendingUp, Wallet } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo, useRef } from "react";
 import { IndiaTaxEngine } from "@/lib/tax/engine";
 import { TaxBreakdown, TaxProfile } from "@/domain/tax";
+import { useCurrencyFormat } from "@/lib/currency";
 
 export function TaxOverview() {
   const profile = useAppStore((s) => s.profile);
   const storedTaxProfile = useAppStore((s) => s.taxProfile);
   const assets = useAppStore((s) => s.assets);
+  const { format } = useCurrencyFormat();
   
-  // Default fallback
-  const taxProfile: TaxProfile = storedTaxProfile || {
-    id: "default",
-    jurisdiction: "IN",
-    regime: "new",
-    fiscalYearStart: "2024-04-01",
-    filingStatus: "individual"
-  };
+  // Memoize taxProfile to prevent recreation on every render
+  const taxProfile: TaxProfile = useMemo(() => {
+    return storedTaxProfile || {
+      id: "default",
+      jurisdiction: "IN",
+      regime: "new",
+      fiscalYearStart: "2024-04-01",
+      filingStatus: "individual"
+    };
+  }, [storedTaxProfile]);
+
+  // Memoize income streams to prevent unnecessary recalculations
+  const incomeStreams = useMemo(() => profile?.incomeStreams || [], [profile?.incomeStreams]);
 
   // Local state for the calculated breakdown
   const [breakdown, setBreakdown] = useState<TaxBreakdown | null>(null);
+  
+  // Use ref to track previous calculation to prevent unnecessary updates
+  const prevCalculationRef = useRef<string>("");
 
   useEffect(() => {
     if (!taxProfile || taxProfile.jurisdiction !== "IN") return;
 
     // Calculate Gross Income from Income Streams
-    const streams = profile?.incomeStreams || [];
-    const annualGrossIncome = streams.reduce((total, stream) => {
+    const annualGrossIncome = incomeStreams.reduce((total, stream) => {
       let annualAmount = stream.amount;
       switch (stream.frequency) {
         case "monthly":
@@ -42,19 +51,12 @@ export function TaxOverview() {
           annualAmount = stream.amount;
           break;
         case "irregular":
-          // Assuming irregular income is entered as a lump sum estimate for the year
-          // or we could just treat it as-is. For safety, let's treat it as-is.
           annualAmount = stream.amount;
           break;
       }
       return total + annualAmount;
     }, 0);
 
-    // If no streams, fallback to 0 (or a safe default if we want to show something)
-    // But for "proper" logic, it should be 0 if the user has no income.
-    // However, to avoid a jarring "0 tax" experience if they haven't set it up,
-    // we might want to check if it's 0 and maybe show a prompt? 
-    // For now, let's trust the data. If 0, tax is 0.
     const estimatedGrossIncome = annualGrossIncome > 0 ? annualGrossIncome : 0;
     
     // Mock Deductions (Standard Deduction + 80C etc)
@@ -69,8 +71,20 @@ export function TaxOverview() {
       taxProfile.regime
     );
 
-    setBreakdown(calculation);
-  }, [taxProfile, assets, profile?.incomeStreams]);
+    // Create a stable key to compare calculations
+    const calculationKey = JSON.stringify({
+      income: estimatedGrossIncome,
+      deductions: estimatedDeductions,
+      regime: taxProfile.regime,
+      totalTax: calculation.totalTaxLiability
+    });
+
+    // Only update if calculation actually changed
+    if (prevCalculationRef.current !== calculationKey) {
+      prevCalculationRef.current = calculationKey;
+      setBreakdown(calculation);
+    }
+  }, [taxProfile, incomeStreams]);
 
   return (
     <div className="space-y-6">
@@ -83,7 +97,7 @@ export function TaxOverview() {
             <div>
               <p className="text-blue-100">Estimated Tax Liability</p>
               <h2 className="mt-1 text-4xl font-bold tracking-tight">
-                ₹{breakdown?.totalTaxLiability.toLocaleString() ?? "..."}
+                {breakdown?.totalTaxLiability ? format(breakdown.totalTaxLiability) : "..."}
               </h2>
             </div>
             <div className="rounded-2xl bg-white/20 p-3 backdrop-blur-md">
@@ -121,7 +135,7 @@ export function TaxOverview() {
             <span className="text-xs font-medium">Taxable Income</span>
           </div>
           <div className="mt-2 text-xl font-semibold text-white">
-            ₹{breakdown?.taxableIncome.toLocaleString() ?? "0"}
+            {breakdown?.taxableIncome ? format(breakdown.taxableIncome) : "0"}
           </div>
         </div>
 
@@ -131,7 +145,7 @@ export function TaxOverview() {
             <span className="text-xs font-medium">Capital Gains Tax</span>
           </div>
           <div className="mt-2 text-xl font-semibold text-white">
-            ₹{breakdown?.capitalGainsTax.toLocaleString() ?? "0"}
+            {breakdown?.capitalGainsTax ? format(breakdown.capitalGainsTax) : "0"}
           </div>
         </div>
       </div>
@@ -145,7 +159,7 @@ export function TaxOverview() {
               Regime Comparison
             </p>
             <p className="text-xs text-zinc-500">
-              Switching to Old Regime could save you ₹12,500 if you have HRA.
+              Switching to Old Regime could save you {format(12500)} if you have HRA.
             </p>
           </div>
           <button className="rounded-lg bg-white/5 px-3 py-1.5 text-xs font-medium text-white transition-colors hover:bg-white/10">

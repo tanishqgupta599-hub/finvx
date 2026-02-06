@@ -9,6 +9,7 @@ import { Label } from "@/components/ui/Label";
 import { ExpenseCircle, SharedExpense } from "@/domain/circles";
 import { useAppStore } from "@/state/app-store";
 import { Plus, Check } from "lucide-react";
+import { useCurrencyFormat } from "@/lib/currency";
 
 interface AddExpenseModalProps {
   circle: ExpenseCircle;
@@ -16,6 +17,7 @@ interface AddExpenseModalProps {
 }
 
 export function AddExpenseModal({ circle, currentUserId }: AddExpenseModalProps) {
+  const { symbol, format } = useCurrencyFormat();
   const [open, setOpen] = useState(false);
   const [description, setDescription] = useState("");
   const [amount, setAmount] = useState("");
@@ -98,7 +100,7 @@ export function AddExpenseModal({ circle, currentUserId }: AddExpenseModalProps)
           <div className="space-y-2">
             <Label htmlFor="amount">Amount</Label>
             <div className="relative">
-              <span className="absolute left-3 top-2.5 text-zinc-500">₹</span>
+              <span className="absolute left-3 top-2.5 text-zinc-500">{symbol}</span>
               <Input
                 id="amount"
                 type="number"
@@ -153,7 +155,7 @@ export function AddExpenseModal({ circle, currentUserId }: AddExpenseModalProps)
             </div>
             {amount && (
               <p className="text-right text-xs text-zinc-500">
-                ₹{selectedMembers.length > 0 ? (parseFloat(amount) / selectedMembers.length).toFixed(2) : "0"} / person
+                {selectedMembers.length > 0 ? format(parseFloat(amount) / selectedMembers.length) : format(0)} / person
               </p>
             )}
           </div>

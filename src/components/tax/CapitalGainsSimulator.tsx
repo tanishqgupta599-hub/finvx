@@ -3,11 +3,13 @@
 
 import { useAppStore } from "@/state/app-store";
 import { useState } from "react";
+import { useCurrencyFormat } from "@/lib/currency";
 import { IndiaTaxEngine } from "@/lib/tax/engine";
 import { CapitalGainEvent, TaxLot } from "@/domain/tax";
 import { ArrowRight, Calculator, Calendar, Coins, TrendingUp } from "lucide-react";
 
 export function CapitalGainsSimulator() {
+  const { format, symbol } = useCurrencyFormat();
   const taxLots = useAppStore((s) => s.taxLots);
   
   // State for simulation
@@ -58,7 +60,7 @@ export function CapitalGainsSimulator() {
               <option value="">-- Select an Asset Lot --</option>
               {taxLots.map((lot) => (
                 <option key={lot.id} value={lot.id}>
-                  {lot.type.toUpperCase()} - {lot.quantity} units @ ₹{lot.purchasePrice} ({lot.purchaseDate})
+                  {lot.type.toUpperCase()} - {lot.quantity} units @ {format(lot.purchasePrice)} ({lot.purchaseDate})
                 </option>
               ))}
             </select>
@@ -67,7 +69,7 @@ export function CapitalGainsSimulator() {
           <div>
             <label className="mb-1.5 block text-xs font-medium text-zinc-400">Selling Price (Per Unit)</label>
             <div className="relative">
-              <span className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-500">₹</span>
+              <span className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-500">{symbol}</span>
               <input
                 type="number"
                 value={sellPrice}
@@ -114,12 +116,12 @@ export function CapitalGainsSimulator() {
               <div className="space-y-4">
                 <div className="flex justify-between">
                   <span className="text-xs text-zinc-500">Total Sale Value</span>
-                  <span className="font-medium text-white">₹{(result.sellPrice * result.quantity).toLocaleString()}</span>
+                  <span className="font-medium text-white">{format(result.sellPrice * result.quantity)}</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-xs text-zinc-500">Capital Gain</span>
                   <span className={`font-bold ${result.gain >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
-                    {result.gain >= 0 ? "+" : ""}₹{result.gain.toLocaleString()}
+                    {result.gain >= 0 ? "+" : ""}{format(result.gain)}
                   </span>
                 </div>
                 <div className="flex justify-between">
@@ -130,7 +132,7 @@ export function CapitalGainsSimulator() {
                 <div className="mt-4 rounded-lg bg-white/5 p-3">
                   <div className="flex items-center justify-between">
                     <span className="text-sm text-zinc-300">Tax Payable</span>
-                    <span className="text-lg font-bold text-white">₹{result.tax.toLocaleString()}</span>
+                    <span className="text-lg font-bold text-white">{format(result.tax)}</span>
                   </div>
                   <p className="mt-1 text-[10px] text-zinc-500">
                     *Based on {result.type} rates for FY24-25. Does not account for grandfathering clauses.

@@ -9,6 +9,7 @@ import { Skeleton } from "@/components/ui/Skeleton";
 import { useAppStore } from "@/state/app-store";
 import { useState } from "react";
 import { toast } from "sonner";
+import { useCurrencyFormat } from "@/lib/currency";
 
 export default function Debt() {
   const loans = useAppStore((s) => s.loans);
@@ -34,6 +35,7 @@ export default function Debt() {
     monthlyPayment: "",
   });
   const [extraPayment, setExtraPayment] = useState(0);
+  const { format } = useCurrencyFormat();
 
   const cardDebts = creditCards
     .filter((c) => (c.billAmount || 0) > 0)
@@ -164,19 +166,19 @@ export default function Debt() {
               <div className="rounded-2xl bg-zinc-900 p-4 text-sm">
                 <div className="text-xs text-zinc-500">Total Debt</div>
                 <div className="mt-1 text-lg font-semibold text-rose-500">
-                  ₹{totalDebt.toLocaleString("en-IN")}
+                  {format(totalDebt)}
                 </div>
               </div>
               <div className="rounded-2xl bg-zinc-900 p-4 text-sm">
                 <div className="text-xs text-zinc-500">Monthly Payments</div>
                 <div className="mt-1 text-lg font-semibold text-zinc-100">
-                  ₹{totalEmi.toLocaleString("en-IN")}
+                  {format(totalEmi)}
                 </div>
               </div>
               <div className="rounded-2xl bg-zinc-900 p-4 text-sm">
                 <div className="text-xs text-zinc-500">Interest Bleed/mo</div>
                 <div className="mt-1 text-lg font-semibold text-amber-500">
-                  ₹{Math.round(interestBleed).toLocaleString("en-IN")}
+                  {format(Math.round(interestBleed))}
                 </div>
               </div>
               <div className="rounded-2xl bg-zinc-900 p-4 text-sm">
@@ -260,7 +262,7 @@ export default function Debt() {
                       )}
                     </div>
                     <div className="mt-0.5 text-xs text-zinc-500">
-                      Balance ₹{d.balance.toLocaleString("en-IN")} · APR {d.apr}%
+                      Balance {format(d.balance)} · APR {d.apr}%
                       {d.dueDate && ` · Due ${new Date(d.dueDate).toLocaleDateString()}`}
                     </div>
                   </div>
@@ -269,7 +271,7 @@ export default function Debt() {
                       {d.type === "card" ? "Bill Amount" : "EMI"}
                     </div>
                     <div className="text-sm font-semibold">
-                      ₹{d.monthlyPayment.toLocaleString("en-IN")}
+                      {format(d.monthlyPayment)}
                     </div>
                   </div>
                 </button>
@@ -333,15 +335,14 @@ export default function Debt() {
                     </div>
                     <div className="mt-1 text-base font-medium">{selectedLoan.name}</div>
                     <div className="mt-1 text-xs text-zinc-500">
-                      Balance ₹{selectedLoan.balance.toLocaleString("en-IN")} · APR{" "}
-                      {selectedLoan.apr}% · EMI ₹
-                      {selectedLoan.monthlyPayment.toLocaleString("en-IN")}
+                      Balance {format(selectedLoan.balance)} · APR{" "}
+                      {selectedLoan.apr}% · EMI {format(selectedLoan.monthlyPayment)}
                     </div>
                   </div>
                   <div>
                     <div className="flex items-center justify-between text-xs text-zinc-500">
                       <span>Extra prepayment per month</span>
-                      <span>₹{extraPayment.toLocaleString("en-IN")}</span>
+                      <span>{format(extraPayment)}</span>
                     </div>
                     <input
                       type="range"
@@ -366,7 +367,7 @@ export default function Debt() {
                       <div className="text-zinc-500">Interest avoided</div>
                       <div className="mt-1 text-sm font-semibold">
                         {interestSaved > 0
-                          ? `~₹${Math.round(interestSaved).toLocaleString("en-IN")}`
+                          ? `~${format(Math.round(interestSaved))}`
                           : "Will appear once slider moves"}
                       </div>
                     </div>
@@ -390,7 +391,7 @@ export default function Debt() {
                   <div className="text-zinc-500">Projected interest over 12 months</div>
                   <div className="mt-1 text-sm font-semibold">
                     {hasLoans
-                      ? `~₹${Math.round(interestBleed * 12).toLocaleString("en-IN")}`
+                      ? `~${format(Math.round(interestBleed * 12))}`
                       : "Add loans to see this"}
                   </div>
                 </div>

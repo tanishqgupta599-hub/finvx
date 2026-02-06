@@ -11,7 +11,10 @@ export async function POST() {
 
   try {
     const email = user.emailAddresses[0]?.emailAddress;
-    const name = `${user.firstName || ""} ${user.lastName || ""}`.trim() || "User";
+    // Get name from Clerk - prefer firstName + lastName, fallback to email username
+    const clerkName = `${user.firstName || ""} ${user.lastName || ""}`.trim();
+    const fallbackName = email?.split("@")[0] || "User";
+    const name = clerkName || fallbackName;
     const avatarUrl = user.imageUrl;
 
     // Upsert user in database

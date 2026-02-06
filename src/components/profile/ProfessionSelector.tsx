@@ -29,17 +29,17 @@ const JOB_TYPES = [
 
 export function ProfessionSelector() {
   const profile = useAppStore((s) => s.profile);
-  const setProfile = useAppStore((s) => s.setProfile);
+  const updateProfile = useAppStore((s) => s.updateProfile);
 
   const handleSelect = (prof: string) => {
     if (!profile) return;
-    setProfile({ ...profile, profession: prof });
+    updateProfile({ profession: prof });
     toast.success(`Profession set to ${prof}`);
   };
 
   const handleEmploymentSelect = (type: any) => {
     if (!profile) return;
-    setProfile({ ...profile, employment: type });
+    updateProfile({ employment: type });
     toast.success(`Employment status updated`);
   };
 

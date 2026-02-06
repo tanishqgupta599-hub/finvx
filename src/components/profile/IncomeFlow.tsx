@@ -11,7 +11,7 @@ import { Button } from "@/components/ui/Button";
 
 export function IncomeFlow() {
   const profile = useAppStore((s) => s.profile);
-  const setProfile = useAppStore((s) => s.setProfile);
+  const updateProfile = useAppStore((s) => s.updateProfile);
   const streams = profile?.incomeStreams || [];
 
   const [isAdding, setIsAdding] = useState(false);
@@ -40,8 +40,7 @@ export function IncomeFlow() {
       predictability: newStream.predictability || 80,
     };
 
-    setProfile({
-      ...profile,
+    updateProfile({
       incomeStreams: [...streams, stream],
     });
 
@@ -52,8 +51,7 @@ export function IncomeFlow() {
 
   const removeStream = (id: string) => {
     if (!profile) return;
-    setProfile({
-      ...profile,
+    updateProfile({
       incomeStreams: streams.filter(s => s.id !== id),
     });
     toast.success("Income stream removed");

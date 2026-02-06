@@ -10,6 +10,7 @@ import { useMemo, useState } from "react";
 import { toast } from "sonner";
 import { Goal as GoalModel, GOAL_TYPES } from "@/domain/models";
 import { Area, AreaChart, ResponsiveContainer, Tooltip, XAxis } from "recharts";
+import { useCurrencyFormat } from "@/lib/currency";
 
 export default function Goals() {
   const goals = useAppStore((s) => s.goals);
@@ -17,6 +18,7 @@ export default function Goals() {
   const addGoal = useAppStore((s) => s.addGoal);
   const updateGoal = useAppStore((s) => s.updateGoal);
   const overwhelmMode = useAppStore((s) => s.overwhelmMode);
+  const { format } = useCurrencyFormat();
 
   const [goalSheetOpen, setGoalSheetOpen] = useState(false);
   const [editingGoalId, setEditingGoalId] = useState<string | null>(null);
@@ -212,13 +214,13 @@ export default function Goals() {
               <div className="rounded-2xl bg-zinc-900 p-4 text-sm">
                 <div className="text-xs text-zinc-500">Total target</div>
                 <div className="mt-1 text-lg font-semibold">
-                  ₹{totalGoalTarget.toLocaleString("en-IN")}
+                  {format(totalGoalTarget)}
                 </div>
               </div>
               <div className="rounded-2xl bg-zinc-900 p-4 text-sm">
                 <div className="text-xs text-zinc-500">Saved so far</div>
                 <div className="mt-1 text-lg font-semibold">
-                  ₹{totalGoalProgress.toLocaleString("en-IN")}
+                  {format(totalGoalProgress)}
                 </div>
               </div>
               <div className="rounded-2xl bg-zinc-900 p-4 text-sm">
@@ -327,8 +329,7 @@ export default function Goals() {
                           />
                         </div>
                         <div className="mt-2 text-xs text-zinc-500">
-                          ₹{g.currentAmount.toLocaleString("en-IN")} / ₹
-                          {g.targetAmount.toLocaleString("en-IN")}
+                          {format(g.currentAmount)} / {format(g.targetAmount)}
                           {g.dueDate
                             ? ` · by ${new Date(
                                 g.dueDate,
@@ -503,7 +504,7 @@ export default function Goals() {
             <div className="rounded-xl bg-emerald-500/10 p-3 text-xs border border-emerald-500/20 text-emerald-200">
               <div className="font-medium text-emerald-100">Plan</div>
               <div className="mt-1 opacity-90">
-                Save <span className="font-semibold">₹{monthlySavingsNeeded.toLocaleString("en-IN")}</span> per month to reach this goal on time.
+                Save <span className="font-semibold">{format(monthlySavingsNeeded)}</span> per month to reach this goal on time.
               </div>
             </div>
           )}
