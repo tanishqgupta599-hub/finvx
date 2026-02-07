@@ -7,8 +7,9 @@ export const dynamic = "force-dynamic";
 // DELETE - Remove emergency contact
 export async function DELETE(
   request: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
+  const { id } = await params;
   const user = await currentUser();
 
   if (!user) {
@@ -26,7 +27,7 @@ export async function DELETE(
 
     // Verify ownership
     const contact = await prisma.emergencyContact.findUnique({
-      where: { id: params.id },
+      where: { id },
     });
 
     if (!contact) {
@@ -38,7 +39,7 @@ export async function DELETE(
     }
 
     await prisma.emergencyContact.delete({
-      where: { id: params.id },
+      where: { id },
     });
 
     return NextResponse.json({ success: true });
@@ -51,8 +52,9 @@ export async function DELETE(
 // PATCH - Update emergency contact
 export async function PATCH(
   request: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
+  const { id } = await params;
   const user = await currentUser();
 
   if (!user) {
@@ -73,7 +75,7 @@ export async function PATCH(
 
     // Verify ownership
     const contact = await prisma.emergencyContact.findUnique({
-      where: { id: params.id },
+      where: { id },
     });
 
     if (!contact) {
@@ -85,7 +87,7 @@ export async function PATCH(
     }
 
     const updatedContact = await prisma.emergencyContact.update({
-      where: { id: params.id },
+      where: { id },
       data: {
         name,
         phone,

@@ -1,7 +1,7 @@
 import { forwardRef } from "react";
 import { twMerge } from "tailwind-merge";
 
-type Variant = "primary" | "secondary" | "ghost" | "destructive";
+type Variant = "primary" | "secondary" | "ghost" | "destructive" | "outline";
 type Size = "sm" | "md" | "lg" | "icon";
 
 export const Button = forwardRef<
@@ -21,6 +21,7 @@ export const Button = forwardRef<
       secondary: "bg-zinc-800 text-white hover:bg-zinc-700 border border-zinc-700",
       ghost: "bg-transparent hover:bg-zinc-800 text-zinc-400 hover:text-white",
       destructive: "bg-red-500/10 text-red-500 border border-red-500/20 hover:bg-red-500/20 shadow-[0_0_10px_rgba(239,68,68,0.1)]",
+      outline: "bg-transparent border border-zinc-700 text-zinc-300 hover:bg-zinc-800 hover:text-white",
     }[variant];
     return (
       <button

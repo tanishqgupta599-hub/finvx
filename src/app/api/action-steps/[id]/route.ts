@@ -4,8 +4,9 @@ import prisma from "@/lib/db";
 
 export async function PATCH(
   request: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
+  const { id } = await params;
   const user = await currentUser();
 
   if (!user) {
@@ -18,7 +19,7 @@ export async function PATCH(
     // Verify ownership via ActionItem -> User
     // We need to find the step and ensure its action item belongs to the user
     const step = await prisma.actionStep.findUnique({
-      where: { id: params.id },
+      where: { id },
       include: {
         actionItem: true,
       },
@@ -48,7 +49,7 @@ export async function PATCH(
     }
 
     const updatedStep = await prisma.actionStep.update({
-      where: { id: params.id },
+      where: { id },
       data: {
         done: done,
       },

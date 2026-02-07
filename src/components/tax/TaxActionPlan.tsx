@@ -22,12 +22,33 @@ export function TaxActionPlan() {
   const handleGeneratePlan = async () => {
     setIsGenerating(true);
     try {
+      // Calculate annual income
+      const incomeStreams = userProfile?.incomeStreams || [];
+      const annualIncome = incomeStreams.reduce((acc, stream) => {
+        let multiplier = 1;
+        if (stream.frequency === 'monthly') multiplier = 12;
+        if (stream.frequency === 'weekly') multiplier = 52;
+        if (stream.frequency === 'yearly') multiplier = 1;
+        return acc + (stream.amount * multiplier);
+      }, 0);
+
+      // Estimate age
+      let age = 30;
+      if (userProfile?.ageRange) {
+         const range = userProfile.ageRange;
+         if (range === "18-24") age = 21;
+         else if (range === "25-34") age = 30;
+         else if (range === "35-44") age = 40;
+         else if (range === "45-54") age = 50;
+         else if (range === "55+") age = 60;
+      }
+
       // Construct context from store
       const context = {
-        annualIncome: userProfile?.monthlyIncome ? userProfile.monthlyIncome * 12 : 0,
+        annualIncome,
         investments: investments.map(a => ({ name: a.name, value: a.value, type: a.type })),
         regime: taxProfile?.regime,
-        age: userProfile?.dateOfBirth ? new Date().getFullYear() - new Date(userProfile.dateOfBirth).getFullYear() : 30,
+        age,
         rentPaid: 0 // Ideally fetch from expenses
       };
 

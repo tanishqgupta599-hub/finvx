@@ -7,8 +7,9 @@ export const dynamic = "force-dynamic";
 // DELETE - Remove vault document
 export async function DELETE(
   request: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
+  const { id } = await params;
   const user = await currentUser();
 
   if (!user) {
@@ -26,7 +27,7 @@ export async function DELETE(
 
     // Verify ownership
     const doc = await prisma.vaultDocument.findUnique({
-      where: { id: params.id },
+      where: { id },
     });
 
     if (!doc) {
@@ -38,7 +39,7 @@ export async function DELETE(
     }
 
     await prisma.vaultDocument.delete({
-      where: { id: params.id },
+      where: { id },
     });
 
     return NextResponse.json({ success: true });
