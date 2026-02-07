@@ -21,23 +21,10 @@ export async function GET() {
 
   try {
     // Ensure user exists in DB before fetching data
-    // This fixes the issue where data isn't saved because the user record doesn't exist
-    const dbUser = await getOrCreateUser(user);
-    
-    // If we can't get/create the user, we must fall back to demo mode
-    if (!dbUser) {
-       const clerkName = `${user.firstName || ""} ${user.lastName || ""}`.trim();
-       const fallbackName = user.emailAddresses[0]?.emailAddress?.split("@")[0] || "User";
-       const displayName = clerkName || fallbackName;
-      
-       return NextResponse.json({
-        clerkId: user.id,
-        email: user.emailAddresses[0]?.emailAddress,
-        name: displayName,
-        avatarUrl: user.imageUrl,
-        isDemo: true, // Signal to frontend that we are in demo/fallback mode
-        debug: dbStatus, // Exposed for debugging
-        assets: [],
+    await getOrCreateUser(user);
+
+    const dbUser = await prisma.user.findUnique({
+      where: { clerkId: user.id },
       include: {
         incomeStreams: true,
         assets: true,
@@ -81,10 +68,6 @@ export async function GET() {
     });
 
     if (!dbUser) {
-      // If user not found in DB but authenticated, return empty state instead of 404
-      // This allows the frontend to initialize with clean state while waiting for sync
-      // Get name from Clerk - use firstName + lastName, or email username as fallback
-      // This block is actually largely redundant now due to the check above, but kept for safety/fallback logic
       const clerkName = `${user.firstName || ""} ${user.lastName || ""}`.trim();
       const fallbackName = user.emailAddresses[0]?.emailAddress?.split("@")[0] || "User";
       const displayName = clerkName || fallbackName;
@@ -94,7 +77,7 @@ export async function GET() {
         email: user.emailAddresses[0]?.emailAddress,
         name: displayName,
         avatarUrl: user.imageUrl,
-        isDemo: true, // Signal to frontend that we are in demo/fallback mode
+        isDemo: true, 
         debug: dbStatus,
         assets: [],
         loans: [],
@@ -112,7 +95,6 @@ export async function GET() {
         autopsyReports: [],
         emergencyContacts: [],
         vaultDocuments: [],
-        // Default tax profile for new users so the page renders
         taxProfile: {
           jurisdiction: "IN",
           regime: "new",
@@ -122,10 +104,6 @@ export async function GET() {
       });
     }
 
-    // Ensure taxProfile exists in the response even if null in DB (though we should probably upsert it elsewhere)
-    // For now, let's just return what we have. If null, the UI might still hide it.
-    // Better strategy: If dbUser.taxProfile is null, inject a default structure in the response
-    // so the UI doesn't break/hide.
     const responseData = {
       ...dbUser,
       taxProfile: dbUser.taxProfile || {
