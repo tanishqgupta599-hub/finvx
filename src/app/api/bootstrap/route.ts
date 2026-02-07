@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { currentUser } from "@clerk/nextjs/server";
-import prisma from "@/lib/db";
+import prisma, { isDatabaseAvailable } from "@/lib/db";
 import { getOrCreateUser } from "@/lib/user-helper";
 
 export const dynamic = "force-dynamic";
@@ -12,13 +12,32 @@ export async function GET() {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
+  // Debug info for Vercel diagnosis
+  const dbStatus = {
+    available: isDatabaseAvailable(),
+    env_db_url_exists: !!(process.env.DATABASE_URL || process.env.POSTGRES_PRISMA_URL),
+    node_env: process.env.NODE_ENV
+  };
+
   try {
     // Ensure user exists in DB before fetching data
     // This fixes the issue where data isn't saved because the user record doesn't exist
-    await getOrCreateUser(user);
-
-    const dbUser = await prisma.user.findUnique({
-      where: { clerkId: user.id },
+    const dbUser = await getOrCreateUser(user);
+    
+    // If we can't get/create the user, we must fall back to demo mode
+    if (!dbUser) {
+       const clerkName = `${user.firstName || ""} ${user.lastName || ""}`.trim();
+       const fallbackName = user.emailAddresses[0]?.emailAddress?.split("@")[0] || "User";
+       const displayName = clerkName || fallbackName;
+      
+       return NextResponse.json({
+        clerkId: user.id,
+        email: user.emailAddresses[0]?.emailAddress,
+        name: displayName,
+        avatarUrl: user.imageUrl,
+        isDemo: true, // Signal to frontend that we are in demo/fallback mode
+        debug: dbStatus, // Exposed for debugging
+        assets: [],
       include: {
         incomeStreams: true,
         assets: true,
@@ -65,6 +84,7 @@ export async function GET() {
       // If user not found in DB but authenticated, return empty state instead of 404
       // This allows the frontend to initialize with clean state while waiting for sync
       // Get name from Clerk - use firstName + lastName, or email username as fallback
+      // This block is actually largely redundant now due to the check above, but kept for safety/fallback logic
       const clerkName = `${user.firstName || ""} ${user.lastName || ""}`.trim();
       const fallbackName = user.emailAddresses[0]?.emailAddress?.split("@")[0] || "User";
       const displayName = clerkName || fallbackName;
@@ -75,6 +95,7 @@ export async function GET() {
         name: displayName,
         avatarUrl: user.imageUrl,
         isDemo: true, // Signal to frontend that we are in demo/fallback mode
+        debug: dbStatus,
         assets: [],
         loans: [],
         liabilities: [],
