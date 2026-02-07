@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { currentUser } from "@clerk/nextjs/server";
 import prisma from "@/lib/db";
+import { getOrCreateUser } from "@/lib/user-helper";
 
 export const dynamic = "force-dynamic";
 
@@ -12,6 +13,10 @@ export async function GET() {
   }
 
   try {
+    // Ensure user exists in DB before fetching data
+    // This fixes the issue where data isn't saved because the user record doesn't exist
+    await getOrCreateUser(user);
+
     const dbUser = await prisma.user.findUnique({
       where: { clerkId: user.id },
       include: {

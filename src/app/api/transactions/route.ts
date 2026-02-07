@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { TransactionCategory } from "@prisma/client";
+import { getOrCreateUser } from "@/lib/user-helper";
 
 export const dynamic = "force-dynamic";
 
@@ -119,9 +120,7 @@ export async function POST(request: Request) {
         return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
       }
 
-      const dbUser = await dbCheck.prisma!.user.findUnique({
-        where: { clerkId: user.id },
-      });
+      const dbUser = await getOrCreateUser(user);
 
       if (!dbUser) {
         // Return demo response if user not found

@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { currentUser } from "@clerk/nextjs/server";
 import prisma from "@/lib/db";
 import { AssetType } from "@prisma/client";
+import { getOrCreateUser } from "@/lib/user-helper";
 
 export const dynamic = "force-dynamic";
 
@@ -14,9 +15,7 @@ export async function GET(request: Request) {
   }
 
   try {
-    const dbUser = await prisma.user.findUnique({
-      where: { clerkId: user.id },
-    });
+    const dbUser = await getOrCreateUser(user);
 
     if (!dbUser) {
       return NextResponse.json({ error: "User profile not found. Please refresh." }, { status: 404 });
@@ -58,9 +57,7 @@ export async function POST(request: Request) {
     }
 
     // Find the database user first to get the internal ID
-    const dbUser = await prisma.user.findUnique({
-      where: { clerkId: user.id },
-    });
+    const dbUser = await getOrCreateUser(user);
 
     if (!dbUser) {
         return NextResponse.json({ error: "User profile not found. Please refresh." }, { status: 404 });

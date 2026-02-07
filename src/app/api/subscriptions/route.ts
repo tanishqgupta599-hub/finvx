@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { currentUser } from "@clerk/nextjs/server";
 import prisma from "@/lib/db";
 import { SubscriptionCadence } from "@prisma/client";
+import { getOrCreateUser } from "@/lib/user-helper";
 
 export const dynamic = "force-dynamic";
 
@@ -13,9 +14,7 @@ export async function GET(request: Request) {
   }
 
   try {
-    const dbUser = await prisma.user.findUnique({
-      where: { clerkId: user.id },
-    });
+    const dbUser = await getOrCreateUser(user);
 
     if (!dbUser) {
       return NextResponse.json(
@@ -81,9 +80,7 @@ export async function POST(request: Request) {
       );
     }
 
-    const dbUser = await prisma.user.findUnique({
-      where: { clerkId: user.id },
-    });
+    const dbUser = await getOrCreateUser(user);
 
     if (!dbUser) {
       return NextResponse.json(
