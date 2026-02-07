@@ -74,6 +74,7 @@ export async function GET() {
         email: user.emailAddresses[0]?.emailAddress,
         name: displayName,
         avatarUrl: user.imageUrl,
+        isDemo: true, // Signal to frontend that we are in demo/fallback mode
         assets: [],
         loans: [],
         liabilities: [],

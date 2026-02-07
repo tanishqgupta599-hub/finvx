@@ -162,7 +162,7 @@ export const useAppStore = create<AppState & AppActions>()(
               circles: data.circles || [],
               taxProfile: data.taxProfile, // Load tax profile
               taxActionPlan: data.taxActionPlan, // Load tax action plan
-              demoDataEnabled: false, 
+              demoDataEnabled: !!data.isDemo, 
             });
           }
         } catch (error) {
