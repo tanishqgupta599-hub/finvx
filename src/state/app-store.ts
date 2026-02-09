@@ -251,6 +251,7 @@ export const useAppStore = create<AppState & AppActions>()(
     })),
   clearData: () =>
     set(() => ({
+      profile: undefined,
       assets: [],
       loans: [],
       liabilities: [],
