@@ -12,7 +12,8 @@ type AppState = {
   profile?: UserProfile;
   profileMode: ProfileMode;
   overwhelmMode: boolean;
-  demoDataEnabled: boolean;
+  demoDataEnabled:isLoading: boolean;
+  hasUnsavedChanges: boolean;
   featureFlags: FeatureFlags;
   onboardingCompleted: boolean;
   assets: Asset[];
@@ -106,6 +107,7 @@ export const useAppStore = create<AppState & AppActions>()(
       overwhelmMode: false,
       demoDataEnabled: false, // Default to false for production
       isLoading: false,
+      hasUnsavedChanges: false,
       featureFlags: defaultFeatureFlags,
       onboardingCompleted: true, // Default to true to skip onboarding
       assets: [],
@@ -137,6 +139,12 @@ export const useAppStore = create<AppState & AppActions>()(
       
       // New actions
       fetchUserData: async () => {
+        // If there are unsaved changes, do NOT overwrite local state with potentially stale server state
+        if (get().hasUnsavedChanges) {
+          console.warn("Skipping fetchUserData due to unsaved local changes.");
+          return;
+        }
+
         set({ isLoading: true });
         try {
           const response = await fetch("/api/bootstrap");
@@ -163,6 +171,7 @@ export const useAppStore = create<AppState & AppActions>()(
               taxProfile: data.taxProfile, // Load tax profile
               taxActionPlan: data.taxActionPlan, // Load tax action plan
               demoDataEnabled: !!data.isDemo, 
+              hasUnsavedChanges: false, // Mark as synced
             });
           }
         } catch (error) {
@@ -212,10 +221,12 @@ export const useAppStore = create<AppState & AppActions>()(
         const errorData = await response.json().catch(() => ({}));
         console.warn("Failed to update profile in backend", errorData);
         toast.warning("Backend unavailable, updated locally.");
+        set({ hasUnsavedChanges: true });
       }
     } catch (error) {
       console.warn("Network error updating profile", error);
       toast.warning("Network error, updated locally.");
+      set({ hasUnsavedChanges: true });
     }
   },
 
@@ -295,10 +306,12 @@ export const useAppStore = create<AppState & AppActions>()(
         const errorData = await response.json().catch(() => ({}));
         console.warn("Failed to save asset to backend, keeping local copy (Demo Mode fallback)", errorData);
         toast.warning("Backend unavailable, saved locally.");
+        set({ hasUnsavedChanges: true });
       }
     } catch (error) {
       console.warn("Network error saving asset, keeping local copy", error);
       toast.warning("Network error, saved locally.");
+      set({ hasUnsavedChanges: true });
     }
   },
   updateAsset: async (asset) => {
