@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { currentUser } from "@clerk/nextjs/server";
-import prisma from "@/lib/db";
+import prisma, { isDatabaseAvailable } from "@/lib/db";
 import { IncomeStream } from "@/domain/models";
 
 export async function PATCH(req: Request) {
@@ -8,6 +8,14 @@ export async function PATCH(req: Request) {
 
   if (!user) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
+  // Gracefully handle missing database connection
+  if (!isDatabaseAvailable() || !prisma) {
+    return NextResponse.json(
+      { error: "Database unavailable. Changes were not saved." },
+      { status: 503 }
+    );
   }
 
   try {

@@ -27,6 +27,8 @@ const hasClerkKeys =
   process.env.CLERK_SECRET_KEY &&
   process.env.CLERK_SECRET_KEY !== 'sk_test_your_key_here';
 
+import { DemoModeBanner } from "@/components/ui/DemoModeBanner";
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -37,7 +39,10 @@ export default function RootLayout({
     return (
       <html lang="en" suppressHydrationWarning>
         <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
-          <Providers>{children}</Providers>
+          <Providers>
+            <DemoModeBanner />
+            {children}
+          </Providers>
         </body>
       </html>
     );
@@ -73,7 +78,10 @@ export default function RootLayout({
     >
       <html lang="en" suppressHydrationWarning>
         <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
-          <Providers>{children}</Providers>
+          <Providers>
+            <DemoModeBanner />
+            {children}
+          </Providers>
         </body>
       </html>
     </ClerkProvider>
