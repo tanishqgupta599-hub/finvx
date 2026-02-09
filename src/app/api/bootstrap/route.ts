@@ -78,6 +78,7 @@ export async function GET() {
         name: displayName,
         avatarUrl: user.imageUrl,
         isDemo: true, 
+        onboardingCompleted: true, // Bypass onboarding in demo mode
         debug: dbStatus,
         assets: [],
         loans: [],
