@@ -107,7 +107,7 @@ export const useAppStore = create<AppState & AppActions>()(
       demoDataEnabled: false, // Default to false for production
       isLoading: false,
       featureFlags: defaultFeatureFlags,
-      onboardingCompleted: false,
+      onboardingCompleted: true, // Default to true to skip onboarding
       assets: [],
       loans: [],
       liabilities: [],

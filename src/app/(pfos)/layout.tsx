@@ -13,15 +13,7 @@ export default function FinvxLayout({ children }: { children: React.ReactNode })
   const pathname = usePathname();
 
   useEffect(() => {
-    // Check if user needs onboarding
-    // Skip if already on onboarding page or if profile has a name
-    // Also skip if we are in demo mode (DB disconnected)
-    if (pathname === "/onboarding" || demoDataEnabled) return;
-    
-    // If onboarding not completed and no name set, redirect to onboarding
-    if (!onboardingCompleted && (!profile?.name || profile.name === "You" || profile.name === "User")) {
-      router.push("/onboarding");
-    }
+    // Onboarding redirection disabled as per user request
   }, [onboardingCompleted, profile?.name, pathname, router, demoDataEnabled]);
 
   return <AppShell>{children}</AppShell>;
