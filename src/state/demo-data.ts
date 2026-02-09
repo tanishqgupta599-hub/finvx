@@ -6,7 +6,8 @@ import { formatCurrency, CountryCode } from "@/lib/countries";
 
 export function demoProfile(): UserProfile {
   return {
-    id: "user_demo",
+    id: "user_demo_12345", // Fixed ID for demo user
+    clerkId: "demo_user_clerk_id", // Distinct Clerk ID for demo
     name: "Alex Morgan",
     email: "alex@example.com",
     avatarUrl: "/avatar.png",

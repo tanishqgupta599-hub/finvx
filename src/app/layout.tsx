@@ -28,6 +28,7 @@ const hasClerkKeys =
   process.env.CLERK_SECRET_KEY !== 'sk_test_your_key_here';
 
 import { DemoModeBanner } from "@/components/ui/DemoModeBanner";
+import { SessionGuard } from "@/components/app-shell/SessionGuard";
 
 export default function RootLayout({
   children,
@@ -79,6 +80,7 @@ export default function RootLayout({
       <html lang="en" suppressHydrationWarning>
         <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
           <Providers>
+            <SessionGuard />
             <DemoModeBanner />
             {children}
           </Providers>

@@ -1711,4 +1711,12 @@ export const useAppStore = create<AppState & AppActions>()(
     friends: state.friends,
     calendarEvents: state.calendarEvents,
   }),
+  version: 2, // Bump version to invalidate old caches (Fixes data leak on user switch)
+  migrate: (persistedState: any, version: number) => {
+    if (version < 2) {
+      // Return empty state for older versions
+      return {} as AppState & AppActions;
+    }
+    return persistedState as AppState & AppActions;
+  },
 }));
