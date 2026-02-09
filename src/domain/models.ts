@@ -18,6 +18,7 @@ export type EmploymentType = "student" | "salaried" | "self-employed" | "busines
 
 export interface UserProfile {
   id: string;
+  clerkId?: string;
   name: string;
   email: string;
   avatarUrl?: string;
