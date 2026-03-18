@@ -175,8 +175,11 @@ export default function Cards() {
       toast.error("Rates, points, fee, and bill amount must be numbers");
       return;
     }
+    const isEditing = !!editingCardId && cards.some((existing) => existing.id === editingCardId);
+    const cardId = isEditing ? (editingCardId as string) : `card-${Date.now()}`;
+
     const card: CreditCardModel = {
-      id: editingCardId ?? `card-${Date.now()}`,
+      id: cardId,
       brand: cardForm.brand,
       last4: cardForm.last4,
       limit,
@@ -190,7 +193,7 @@ export default function Cards() {
       billAmount,
       billDueDate: cardForm.billDueDate || undefined,
     };
-    if (editingCardId) {
+    if (isEditing) {
       updateCard(card);
     } else {
       addCard(card);
@@ -398,9 +401,9 @@ export default function Cards() {
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
         <div className="grid grid-cols-1 gap-4 lg:col-span-2">
           <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-            {cards.map((c) => (
+            {cards.map((c, index) => (
               <div
-                key={c.id}
+                key={c.id || `card-${index}`}
                 role="button"
                 onClick={() => openEditCard(c.id)}
                 className="text-left cursor-pointer"
@@ -411,15 +414,28 @@ export default function Cards() {
                       <div className="uppercase tracking-wide opacity-80">
                         {c.brand.toUpperCase()}
                       </div>
-                      {c.nextBillDate && (
-                        <div className="opacity-80">
-                          Bill{" "}
-                          {new Date(c.nextBillDate).toLocaleDateString(undefined, {
-                            month: "short",
-                            day: "numeric",
-                          })}
-                        </div>
-                      )}
+                      <div className="flex items-center gap-2">
+                        {c.nextBillDate && (
+                          <div className="opacity-80">
+                            Bill{" "}
+                            {new Date(c.nextBillDate).toLocaleDateString(undefined, {
+                              month: "short",
+                              day: "numeric",
+                            })}
+                          </div>
+                        )}
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            removeCard(c.id);
+                          }}
+                          className="rounded-full bg-white/10 p-1 hover:bg-white/20"
+                          aria-label="Delete card"
+                        >
+                          <Trash2 className="h-3 w-3" />
+                        </button>
+                      </div>
                     </div>
                     <div className="mt-6 text-2xl tracking-widest">
                       •••• •••• •••• {c.last4}

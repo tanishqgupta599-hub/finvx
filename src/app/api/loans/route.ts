@@ -6,12 +6,18 @@ export const dynamic = "force-dynamic";
 async function checkDatabaseAvailable() {
   try {
     const { default: prisma, isDatabaseAvailable } = await import("@/lib/db");
+    const { isMongoAvailable, getCollection } = await import("@/lib/mongo");
+    // Prefer Mongo availability
+    if (isMongoAvailable()) {
+      const col = await getCollection<any>("loans");
+      if (col) return { available: true, prisma: null, mongo: true };
+    }
     if (!isDatabaseAvailable() || !prisma) {
       return { available: false, prisma: null };
     }
     // Test connection
     await prisma.$queryRaw`SELECT 1`;
-    return { available: true, prisma };
+    return { available: true, prisma, mongo: false };
   } catch (error) {
     return { available: false, prisma: null };
   }
@@ -42,21 +48,23 @@ export async function GET(request: Request) {
         return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
       }
 
-      const dbUser = await dbCheck.prisma!.user.findUnique({
-        where: { clerkId: user.id },
-      });
-
-      if (!dbUser) {
+      if (dbCheck.mongo) {
+        const { getCollection } = await import("@/lib/mongo");
+        const loansCol = await getCollection<any>("loans");
+        const loans = loansCol ? await loansCol.find({ clerkId: user.id }).sort({ balance: -1 }).toArray() : [];
+        const totalBalance = loans.reduce((sum: number, loan: any) => sum + Number(loan.balance || 0), 0);
+        const totalMonthlyPayment = loans.reduce((sum: number, loan: any) => sum + Number(loan.monthlyPayment || 0), 0);
         return NextResponse.json({
-          loans: [],
-          summary: { total: 0, totalBalance: 0, totalMonthlyPayment: 0 }
+          loans,
+          summary: { total: loans.length, totalBalance, totalMonthlyPayment }
         });
       }
 
-      const loans = await dbCheck.prisma!.loan.findMany({
-        where: { userId: dbUser.id },
-        orderBy: { balance: "desc" },
-      });
+      const dbUser = await dbCheck.prisma!.user.findUnique({ where: { clerkId: user.id } });
+      if (!dbUser) {
+        return NextResponse.json({ loans: [], summary: { total: 0, totalBalance: 0, totalMonthlyPayment: 0 } });
+      }
+      const loans = await dbCheck.prisma!.loan.findMany({ where: { userId: dbUser.id }, orderBy: { balance: "desc" } });
 
       const totalBalance = loans.reduce((sum, loan) => sum + Number(loan.balance), 0);
       const totalMonthlyPayment = loans.reduce((sum, loan) => sum + Number(loan.monthlyPayment), 0);
@@ -121,17 +129,31 @@ export async function POST(request: Request) {
         return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
       }
 
-      const dbUser = await dbCheck.prisma!.user.findUnique({
-        where: { clerkId: user.id },
-      });
-
-      if (!dbUser) {
-        return NextResponse.json(
-          { error: "User profile not found" },
-          { status: 404 }
-        );
+      if (dbCheck.mongo) {
+        const { getCollection } = await import("@/lib/mongo");
+        const loansCol = await getCollection<any>("loans");
+        if (!loansCol) {
+          return NextResponse.json({ error: "Database unavailable" }, { status: 503 });
+        }
+        const doc = {
+          clerkId: user.id,
+          name,
+          principal: Number(principal),
+          balance: Number(balance),
+          apr: Number(apr || 0),
+          monthlyPayment: Number(monthlyPayment || 0),
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
+        };
+        const res = await loansCol.insertOne(doc);
+        const loan = await loansCol.findOne({ _id: res.insertedId });
+        return NextResponse.json(loan);
       }
 
+      const dbUser = await dbCheck.prisma!.user.findUnique({ where: { clerkId: user.id } });
+      if (!dbUser) {
+        return NextResponse.json({ error: "User profile not found" }, { status: 404 });
+      }
       const loan = await dbCheck.prisma!.loan.create({
         data: {
           userId: dbUser.id,

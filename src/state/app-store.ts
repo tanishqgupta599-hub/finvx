@@ -12,7 +12,8 @@ type AppState = {
   profile?: UserProfile;
   profileMode: ProfileMode;
   overwhelmMode: boolean;
-  demoDataEnabled:isLoading: boolean;
+  demoDataEnabled: boolean;
+  isLoading: boolean;
   hasUnsavedChanges: boolean;
   featureFlags: FeatureFlags;
   onboardingCompleted: boolean;

@@ -34,7 +34,7 @@ export function RecentActivityCard() {
           <div className="space-y-4">
             {recentTxns.map((txn, i) => (
               <motion.div 
-                key={txn.id}
+                key={txn.id || `recent-txn-${i}`}
                 initial={{ opacity: 0, x: -10 }}
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ delay: i * 0.05 }}

@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { currentUser } from "@clerk/nextjs/server";
 import prisma, { isDatabaseAvailable } from "@/lib/db";
+import { getCollection, isMongoAvailable } from "@/lib/mongo";
 import { IncomeStream } from "@/domain/models";
 
 export async function PATCH(req: Request) {
@@ -10,7 +11,67 @@ export async function PATCH(req: Request) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  // Gracefully handle missing database connection
+  // MongoDB path
+  if (isMongoAvailable()) {
+    try {
+      const body = await req.json();
+      const { incomeStreams, ...userFields } = body;
+
+      const users = await getCollection<any>("users");
+      const incomeCol = await getCollection<any>("incomeStreams");
+      if (!users) {
+        return NextResponse.json({ error: "Database unavailable. Changes were not saved." }, { status: 503 });
+      }
+
+      // Update user document
+      const allowedFields = [
+        "name","avatarUrl","mode","riskProfile","financialArchetype",
+        "profession","ageRange","country","countryCode","currency",
+        "hasDependents","employment","monthlyIncomeRange","monthlyFixedCostRange",
+        "insuranceHealth","insuranceTerm","emergencyContactName","emergencyContactPhone",
+        "onboardingCompleted"
+      ];
+      const filteredFields = Object.keys(userFields)
+        .filter(key => allowedFields.includes(key))
+        .reduce((obj: any, key) => {
+          obj[key] = userFields[key];
+          return obj;
+        }, {});
+
+      await users.updateOne(
+        { clerkId: user.id },
+        { $set: { ...filteredFields, updatedAt: new Date().toISOString() } },
+        { upsert: true }
+      );
+
+      // Replace income streams for this user
+      if (incomeCol && Array.isArray(incomeStreams)) {
+        await incomeCol.deleteMany({ clerkId: user.id });
+        if (incomeStreams.length > 0) {
+          await incomeCol.insertMany(
+            incomeStreams.map((stream: IncomeStream) => ({
+              clerkId: user.id,
+              name: stream.name,
+              type: stream.type,
+              amount: Number(stream.amount),
+              frequency: stream.frequency,
+              predictability: Number(stream.predictability),
+              createdAt: new Date().toISOString(),
+            }))
+          );
+        }
+      }
+
+      const updatedUser = await users.findOne({ clerkId: user.id });
+      const updatedIncome = incomeCol ? await incomeCol.find({ clerkId: user.id }).toArray() : [];
+      return NextResponse.json({ ...updatedUser, incomeStreams: updatedIncome });
+    } catch (error) {
+      console.error("Error updating profile (Mongo):", error);
+      return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
+    }
+  }
+
+  // Prisma path
   if (!isDatabaseAvailable() || !prisma) {
     return NextResponse.json(
       { error: "Database unavailable. Changes were not saved." },

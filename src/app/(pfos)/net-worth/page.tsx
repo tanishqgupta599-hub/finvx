@@ -286,9 +286,9 @@ export default function NetWorth() {
                   description="Start with your primary bank account or savings."
                 />
               )}
-              {assets.map((a) => (
+              {assets.map((a, i) => (
                 <button
-                  key={a.id}
+                  key={a.id || `asset-${i}`}
                   type="button"
                   onClick={() => openEditAsset(a.id)}
                   className="flex items-center justify-between rounded-xl bg-zinc-900 p-2 text-left text-sm hover:bg-zinc-800"

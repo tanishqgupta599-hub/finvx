@@ -7,7 +7,7 @@ import { Sheet } from "@/components/ui/Sheet";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { EnhancedEmptyState } from "@/components/ui/EnhancedEmptyState";
 import { useAppStore } from "@/state/app-store";
-import { useMemo, useState } from "react";
+import { useMemo, useState, useEffect } from "react";
 import { toast } from "sonner";
 import { Bar, BarChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import { Transaction, EXPENSE_CATEGORIES } from "@/domain/models";
@@ -20,7 +20,7 @@ import { formatCompact } from "@/lib/countries";
 type TxnFilter = "all" | "income" | "spending";
 type TxnWindow = "all" | "30d" | "7d";
 
-export default function Spending() {
+function SpendingContent() {
   const subs = useAppStore((s) => s.subscriptions);
   const txns = useAppStore((s) => s.transactions);
   const assets = useAppStore((s) => s.assets);
@@ -384,9 +384,9 @@ export default function Spending() {
                   }}
                 />
               )}
-              {filteredTransactions.slice(0, 20).map((t) => (
+              {filteredTransactions.slice(0, 20).map((t, i) => (
                 <div
-                  key={t.id}
+                  key={t.id || `spending-txn-${i}`}
                   className="flex items-center justify-between rounded-xl bg-zinc-900 p-2 text-sm"
                 >
                   <div>
@@ -628,4 +628,18 @@ export default function Spending() {
       </Sheet>
     </div>
   );
+}
+
+export default function Spending() {
+  const [isMounted, setIsMounted] = useState(false);
+
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
+
+  if (!isMounted) {
+    return null;
+  }
+
+  return <SpendingContent />;
 }

@@ -5,13 +5,11 @@ import { defineConfig } from "prisma/config";
 import fs from "fs";
 import path from "path";
 
-// Function to load env file manually
 const loadEnv = (filename: string) => {
   try {
     const envPath = path.resolve(process.cwd(), filename);
     if (fs.existsSync(envPath)) {
         const envFile = fs.readFileSync(envPath, "utf-8");
-        // Simple regex to parse env vars, focusing on DATABASE_URL
         const match = envFile.match(/DATABASE_URL=["']?(.*?)["']?$/m);
         if (match) {
             process.env.DATABASE_URL = match[1].trim();
@@ -25,11 +23,17 @@ const loadEnv = (filename: string) => {
   return false;
 };
 
-// Fallback manual load if dotenv fails or doesn't pick up .env.local
 if (!process.env.DATABASE_URL) {
-  // Try .env.local first (higher priority)
   if (!loadEnv(".env.local")) {
-     loadEnv(".env");
+    loadEnv(".env");
+  }
+}
+
+if (!process.env.DATABASE_URL) {
+  const alt = process.env.POSTGRES_PRISMA_URL || process.env.POSTGRES_URL;
+  if (alt) {
+    process.env.DATABASE_URL = alt;
+    console.log("Using fallback DATABASE_URL from POSTGRES_PRISMA_URL/POSTGRES_URL");
   }
 }
 

@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { currentUser } from "@clerk/nextjs/server";
 import prisma from "@/lib/db";
+import { getCollection, isMongoAvailable } from "@/lib/mongo";
 import { LiabilityType } from "@prisma/client";
 
 export const dynamic = "force-dynamic";
@@ -14,18 +15,21 @@ export async function GET(request: Request) {
   }
 
   try {
-    const dbUser = await prisma.user.findUnique({
-      where: { clerkId: user.id },
-    });
+    if (isMongoAvailable()) {
+      const liabsCol = await getCollection<any>("liabilities");
+      if (!liabsCol) {
+        return NextResponse.json({ error: "Database unavailable" }, { status: 503 });
+      }
+      const liabilities = await liabsCol.find({ clerkId: user.id }).sort({ balance: -1 }).toArray();
+      const totalBalance = liabilities.reduce((sum: number, liab: any) => sum + Number(liab.balance || 0), 0);
+      return NextResponse.json({ liabilities, summary: { total: liabilities.length, totalBalance } });
+    }
 
+    const dbUser = await prisma.user.findUnique({ where: { clerkId: user.id } });
     if (!dbUser) {
       return NextResponse.json({ error: "User profile not found" }, { status: 404 });
     }
-
-    const liabilities = await prisma.liability.findMany({
-      where: { userId: dbUser.id },
-      orderBy: { balance: "desc" },
-    });
+    const liabilities = await prisma.liability.findMany({ where: { userId: dbUser.id }, orderBy: { balance: "desc" } });
 
     const totalBalance = liabilities.reduce((sum, liab) => sum + Number(liab.balance), 0);
 
@@ -58,14 +62,29 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
     }
 
-    const dbUser = await prisma.user.findUnique({
-      where: { clerkId: user.id },
-    });
+    if (isMongoAvailable()) {
+      const liabsCol = await getCollection<any>("liabilities");
+      if (!liabsCol) {
+        return NextResponse.json({ error: "Database unavailable" }, { status: 503 });
+      }
+      const doc = {
+        clerkId: user.id,
+        name,
+        type,
+        balance: Number(balance),
+        apr: apr ? Number(apr) : null,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+      };
+      const res = await liabsCol.insertOne(doc);
+      const liability = await liabsCol.findOne({ _id: res.insertedId });
+      return NextResponse.json(liability);
+    }
 
+    const dbUser = await prisma.user.findUnique({ where: { clerkId: user.id } });
     if (!dbUser) {
       return NextResponse.json({ error: "User profile not found" }, { status: 404 });
     }
-
     const liability = await prisma.liability.create({
       data: {
         userId: dbUser.id,

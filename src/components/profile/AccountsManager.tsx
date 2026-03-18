@@ -108,8 +108,8 @@ export function AccountsManager() {
              No bank accounts linked.
            </div>
         ) : (
-          cashAssets.map((asset) => (
-            <div key={asset.id} className="group flex items-center justify-between rounded-xl border border-white/5 bg-slate-900/50 p-3 hover:border-blue-500/30 transition-colors">
+          cashAssets.map((asset, i) => (
+            <div key={asset.id || `cash-asset-${i}`} className="group flex items-center justify-between rounded-xl border border-white/5 bg-slate-900/50 p-3 hover:border-blue-500/30 transition-colors">
               <div className="flex items-center gap-3">
                 <div className="rounded-lg bg-blue-500/10 p-2 text-blue-400">
                   <Landmark className="h-4 w-4" />

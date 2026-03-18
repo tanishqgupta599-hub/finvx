@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { CardBrand } from "@prisma/client";
+import { isMongoAvailable, getCollection } from "@/lib/mongo";
 
 export const dynamic = "force-dynamic";
 
@@ -7,12 +8,17 @@ export const dynamic = "force-dynamic";
 async function checkDatabaseAvailable() {
   try {
     const { default: prisma, isDatabaseAvailable } = await import("@/lib/db");
+    const { isMongoAvailable, getCollection } = await import("@/lib/mongo");
+    if (isMongoAvailable()) {
+      const col = await getCollection<any>("creditCards");
+      if (col) return { available: true, prisma: null, mongo: true };
+    }
     if (!isDatabaseAvailable() || !prisma) {
       return { available: false, prisma: null };
     }
     // Test connection
     await prisma.$queryRaw`SELECT 1`;
-    return { available: true, prisma };
+    return { available: true, prisma, mongo: false };
   } catch (error) {
     return { available: false, prisma: null };
   }
@@ -22,6 +28,15 @@ async function checkDatabaseAvailable() {
 const hasClerkKeys = 
   process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY && 
   process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY !== 'pk_test_your_key_here';
+
+// Helper to normalize Mongo documents so the client always has an `id` field
+function normalizeCard(card: any) {
+  if (!card) return card;
+  const id = (card.id ?? card._id)?.toString();
+  if (!id) return card;
+  const { _id, ...rest } = card;
+  return { id, ...rest };
+}
 
 // GET - Fetch all credit cards
 export async function GET(request: Request) {
@@ -42,18 +57,20 @@ export async function GET(request: Request) {
         return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
       }
 
-      const dbUser = await dbCheck.prisma!.user.findUnique({
-        where: { clerkId: user.id },
-      });
+      if (dbCheck.mongo) {
+        const cardsCol = await getCollection<any>("creditCards");
+        const rawCards = cardsCol
+          ? await cardsCol.find({ clerkId: user.id }).sort({ createdAt: -1 }).toArray()
+          : [];
+        const creditCards = rawCards.map(normalizeCard);
+        return NextResponse.json(creditCards);
+      }
 
+      const dbUser = await dbCheck.prisma!.user.findUnique({ where: { clerkId: user.id } });
       if (!dbUser) {
         return NextResponse.json([]);
       }
-
-      const creditCards = await dbCheck.prisma!.creditCard.findMany({
-        where: { userId: dbUser.id },
-        orderBy: { createdAt: "desc" },
-      });
+      const creditCards = await dbCheck.prisma!.creditCard.findMany({ where: { userId: dbUser.id }, orderBy: { createdAt: "desc" } });
 
       return NextResponse.json(creditCards);
     } catch (error) {
@@ -82,27 +99,27 @@ export async function POST(request: Request) {
   }
 
   // If no database, return the card data as-is (demo mode - frontend handles storage)
-  if (!dbCheck.available) {
-    const validBrands = Object.values(CardBrand);
-    const cardBrand = validBrands.includes(brand) ? brand : CardBrand.other;
-    
-    return NextResponse.json({
-      id: id || `card-${Date.now()}`,
-      brand: cardBrand,
-      last4,
-      limit: Number(limit),
-      balance: Number(balance),
-      apr: apr ? Number(apr) : null,
-      name: name || `${brand} ${last4}`,
-      billDueDate: billDueDate ? new Date(billDueDate).toISOString() : null,
-      billAmount: billAmount ? Number(billAmount) : null,
-      pointsBalance: pointsBalance ? Number(pointsBalance) : null,
-      rewardProgram: rewardProgram || null,
-      annualFee: annualFee ? Number(annualFee) : null,
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-    });
-  }
+      if (!dbCheck.available) {
+        const validBrands = Object.values(CardBrand);
+        const cardBrand = validBrands.includes(brand) ? brand : CardBrand.other;
+        
+        return NextResponse.json({
+          id: id || `card-${Date.now()}`,
+          brand: cardBrand,
+          last4,
+          limit: Number(limit),
+          balance: Number(balance),
+          apr: apr ? Number(apr) : null,
+          name: name || `${brand} ${last4}`,
+          billDueDate: billDueDate ? new Date(billDueDate).toISOString() : null,
+          billAmount: billAmount ? Number(billAmount) : null,
+          pointsBalance: pointsBalance ? Number(pointsBalance) : null,
+          rewardProgram: rewardProgram || null,
+          annualFee: annualFee ? Number(annualFee) : null,
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
+        });
+      }
 
   // Database available - try to save
   try {
@@ -114,21 +131,40 @@ export async function POST(request: Request) {
         return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
       }
 
-      const dbUser = await dbCheck.prisma!.user.findUnique({
-        where: { clerkId: user.id },
-      });
-
-      if (!dbUser) {
-        return NextResponse.json(
-          { error: "User profile not found" },
-          { status: 404 }
-        );
+      if (dbCheck.mongo) {
+        const cardsCol = await getCollection<any>("creditCards");
+        if (!cardsCol) {
+          return NextResponse.json({ error: "Database unavailable" }, { status: 503 });
+        }
+        const validBrands = Object.values(CardBrand);
+        const cardBrand = validBrands.includes(brand) ? brand : CardBrand.other;
+        const doc = {
+          clerkId: user.id,
+          brand: cardBrand,
+          last4,
+          limit: Number(limit),
+          balance: Number(balance),
+          apr: apr ? Number(apr) : null,
+          name: name || `${brand} ${last4}`,
+          billDueDate: billDueDate ? new Date(billDueDate) : null,
+          billAmount: billAmount ? Number(billAmount) : null,
+          pointsBalance: pointsBalance ? Number(pointsBalance) : null,
+          rewardProgram: rewardProgram || null,
+          annualFee: annualFee ? Number(annualFee) : null,
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
+        };
+        const res = await cardsCol.insertOne(doc);
+        const creditCard = await cardsCol.findOne({ _id: res.insertedId });
+        return NextResponse.json(normalizeCard(creditCard));
       }
 
-      // Validate brand
+      const dbUser = await dbCheck.prisma!.user.findUnique({ where: { clerkId: user.id } });
+      if (!dbUser) {
+        return NextResponse.json({ error: "User profile not found" }, { status: 404 });
+      }
       const validBrands = Object.values(CardBrand);
       const cardBrand = validBrands.includes(brand) ? brand : CardBrand.other;
-
       const creditCard = await dbCheck.prisma!.creditCard.create({
         data: {
           userId: dbUser.id,

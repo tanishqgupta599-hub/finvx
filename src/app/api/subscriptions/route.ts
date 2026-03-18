@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { currentUser } from "@clerk/nextjs/server";
 import prisma from "@/lib/db";
+import { getCollection, isMongoAvailable } from "@/lib/mongo";
 import { SubscriptionCadence } from "@prisma/client";
 import { getOrCreateUser } from "@/lib/user-helper";
 
@@ -14,19 +15,27 @@ export async function GET(request: Request) {
   }
 
   try {
-    const dbUser = await getOrCreateUser(user);
-
-    if (!dbUser) {
-      return NextResponse.json(
-        { error: "User profile not found" },
-        { status: 404 }
-      );
+    if (isMongoAvailable()) {
+      const subsCol = await getCollection<any>("subscriptions");
+      if (!subsCol) {
+        return NextResponse.json({ error: "Database unavailable" }, { status: 503 });
+      }
+      const subscriptions = await subsCol.find({ clerkId: user.id }).sort({ nextChargeDate: 1 }).toArray();
+      const subscriptionsWithMonthlyCost = subscriptions.map((sub: any) => {
+        let monthlyCost = Number(sub.amount);
+        if (sub.cadence === "yearly") monthlyCost = Number(sub.amount) / 12;
+        else if (sub.cadence === "weekly") monthlyCost = Number(sub.amount) * 4.33;
+        return { ...sub, monthlyCost };
+      });
+      const totalMonthly = subscriptionsWithMonthlyCost.reduce((sum: number, sub: any) => sum + sub.monthlyCost, 0);
+      return NextResponse.json({ subscriptions: subscriptionsWithMonthlyCost, totalMonthly, count: subscriptions.length });
     }
 
-    const subscriptions = await prisma.subscription.findMany({
-      where: { userId: dbUser.id },
-      orderBy: { nextChargeDate: "asc" },
-    });
+    const dbUser = await getOrCreateUser(user);
+    if (!dbUser) {
+      return NextResponse.json({ error: "User profile not found" }, { status: 404 });
+    }
+    const subscriptions = await prisma.subscription.findMany({ where: { userId: dbUser.id }, orderBy: { nextChargeDate: "asc" } });
 
     // Calculate monthly cost for each subscription
     const subscriptionsWithMonthlyCost = subscriptions.map((sub) => {
@@ -80,15 +89,29 @@ export async function POST(request: Request) {
       );
     }
 
-    const dbUser = await getOrCreateUser(user);
-
-    if (!dbUser) {
-      return NextResponse.json(
-        { error: "User profile not found" },
-        { status: 404 }
-      );
+    if (isMongoAvailable()) {
+      const subsCol = await getCollection<any>("subscriptions");
+      if (!subsCol) {
+        return NextResponse.json({ error: "Database unavailable" }, { status: 503 });
+      }
+      const doc = {
+        clerkId: user.id,
+        name,
+        amount: Number(amount),
+        cadence,
+        nextChargeDate: new Date(nextChargeDate),
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+      };
+      const res = await subsCol.insertOne(doc);
+      const subscription = await subsCol.findOne({ _id: res.insertedId });
+      return NextResponse.json(subscription);
     }
 
+    const dbUser = await getOrCreateUser(user);
+    if (!dbUser) {
+      return NextResponse.json({ error: "User profile not found" }, { status: 404 });
+    }
     const subscription = await prisma.subscription.create({
       data: {
         userId: dbUser.id,

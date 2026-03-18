@@ -244,9 +244,9 @@ export default function Expenses() {
               />
             ) : (
               <div className="space-y-2">
-                {expenses.slice(0, 20).map((t) => (
+                {expenses.slice(0, 20).map((t, i) => (
                   <div
-                    key={t.id}
+                    key={t.id || `expense-${i}`}
                     className="flex items-center justify-between rounded-xl bg-zinc-900 p-3 text-sm"
                   >
                     <div className="flex items-center gap-3">

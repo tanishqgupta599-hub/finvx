@@ -58,6 +58,10 @@ export default function Home() {
     }
   }, []);
 
+  if (!isMounted) {
+    return null;
+  }
+
   const handleOracleSearch = () => {
     if (oracleQuery.trim()) {
       router.push(`/oracle?q=${encodeURIComponent(oracleQuery)}`);

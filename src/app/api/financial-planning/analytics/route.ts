@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { currentUser } from "@clerk/nextjs/server";
 import prisma from "@/lib/db";
+import { getCollection, isMongoAvailable } from "@/lib/mongo";
 
 export const dynamic = "force-dynamic";
 
@@ -15,15 +16,73 @@ export async function GET(request: Request) {
     const { searchParams } = new URL(request.url);
     const period = searchParams.get("period") || "6months"; // 1month, 3months, 6months, 1year
 
-    const dbUser = await prisma.user.findUnique({
-      where: { clerkId: user.id },
-    });
+    if (isMongoAvailable()) {
+      const txCol = await getCollection<any>("transactions");
+      if (!txCol) {
+        return NextResponse.json({ error: "Database unavailable" }, { status: 503 });
+      }
+      const endDate = new Date();
+      const startDate = new Date();
+      switch (period) {
+        case "1month": startDate.setMonth(startDate.getMonth() - 1); break;
+        case "3months": startDate.setMonth(startDate.getMonth() - 3); break;
+        case "6months": startDate.setMonth(startDate.getMonth() - 6); break;
+        case "1year": startDate.setFullYear(startDate.getFullYear() - 1); break;
+        default: startDate.setMonth(startDate.getMonth() - 6);
+      }
+      const transactions = await txCol.find({
+        clerkId: user.id,
+        date: { $gte: startDate, $lte: endDate },
+      }).sort({ date: 1 }).toArray();
+      const monthlyData: Record<string, { income: number; expenses: number }> = {};
+      transactions.forEach((tx: any) => {
+        const monthKey = new Date(tx.date).toISOString().slice(0, 7);
+        if (!monthlyData[monthKey]) monthlyData[monthKey] = { income: 0, expenses: 0 };
+        if (tx.category === "income") {
+          monthlyData[monthKey].income += Number(tx.amount || 0);
+        } else if (tx.category === "spending") {
+          monthlyData[monthKey].expenses += Math.abs(Number(tx.amount || 0));
+        }
+      });
+      const months = Object.keys(monthlyData).sort();
+      const incomeTrend = months.length > 1
+        ? ((monthlyData[months[months.length - 1]].income - monthlyData[months[0]].income) / (monthlyData[months[0]].income || 1)) * 100
+        : 0;
+      const expenseTrend = months.length > 1
+        ? ((monthlyData[months[months.length - 1]].expenses - monthlyData[months[0]].expenses) / (monthlyData[months[0]].expenses || 1)) * 100
+        : 0;
+      const spendingByCategory: Record<string, number> = {};
+      transactions.filter((tx: any) => tx.category === "spending").forEach((tx: any) => {
+        const category = tx.category;
+        spendingByCategory[category] = (spendingByCategory[category] || 0) + Math.abs(Number(tx.amount || 0));
+      });
+      const topCategories = Object.entries(spendingByCategory).sort(([, a], [, b]) => (b as number) - (a as number)).slice(0, 5).map(([category, amount]) => ({ category, amount }));
+      const avgMonthlyIncome = months.length > 0 ? months.reduce((sum, m) => sum + monthlyData[m].income, 0) / months.length : 0;
+      const avgMonthlyExpenses = months.length > 0 ? months.reduce((sum, m) => sum + monthlyData[m].expenses, 0) / months.length : 0;
+      const lastMonthIncome = monthlyData[months[months.length - 1]]?.income || 0;
+      const lastMonthExpenses = monthlyData[months[months.length - 1]]?.expenses || 0;
+      const projectedSavings = lastMonthIncome - lastMonthExpenses;
+      return NextResponse.json({
+        period,
+        dateRange: { start: startDate.toISOString(), end: endDate.toISOString() },
+        monthlyBreakdown: months.map((month) => ({ month, ...monthlyData[month], savings: monthlyData[month].income - monthlyData[month].expenses })),
+        trends: {
+          income: { value: incomeTrend.toFixed(2) + "%", direction: incomeTrend > 0 ? "up" : incomeTrend < 0 ? "down" : "stable" },
+          expenses: { value: expenseTrend.toFixed(2) + "%", direction: expenseTrend > 0 ? "up" : expenseTrend < 0 ? "down" : "stable" },
+        },
+        averages: { monthlyIncome: avgMonthlyIncome, monthlyExpenses: avgMonthlyExpenses, monthlySavings: avgMonthlyIncome - avgMonthlyExpenses },
+        spending: {
+          byCategory: spendingByCategory,
+          topCategories,
+          total: transactions.filter((tx: any) => tx.category === "spending").reduce((sum: number, tx: any) => sum + Math.abs(Number(tx.amount || 0)), 0),
+        },
+        projections: { nextMonthSavings: projectedSavings, annualSavings: projectedSavings * 12 },
+      });
+    }
 
+    const dbUser = await prisma.user.findUnique({ where: { clerkId: user.id } });
     if (!dbUser) {
-      return NextResponse.json(
-        { error: "User profile not found" },
-        { status: 404 }
-      );
+      return NextResponse.json({ error: "User profile not found" }, { status: 404 });
     }
 
     // Calculate date range
@@ -48,13 +107,7 @@ export async function GET(request: Request) {
 
     // Fetch transactions
     const transactions = await prisma.transaction.findMany({
-      where: {
-        userId: dbUser.id,
-        date: {
-          gte: startDate,
-          lte: endDate,
-        },
-      },
+      where: { userId: dbUser.id, date: { gte: startDate, lte: endDate } },
       orderBy: { date: "asc" },
     });
 

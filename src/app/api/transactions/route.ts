@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { TransactionCategory } from "@prisma/client";
+import { isMongoAvailable, getCollection, toObjectId } from "@/lib/mongo";
 import { getOrCreateUser } from "@/lib/user-helper";
 
 export const dynamic = "force-dynamic";
@@ -8,11 +9,16 @@ export const dynamic = "force-dynamic";
 async function checkDatabaseAvailable() {
   try {
     const { default: prisma, isDatabaseAvailable } = await import("@/lib/db");
+    const { isMongoAvailable, getCollection } = await import("@/lib/mongo");
+    if (isMongoAvailable()) {
+      const col = await getCollection<any>("transactions");
+      if (col) return { available: true, prisma: null, mongo: true };
+    }
     if (!isDatabaseAvailable() || !prisma) {
       return { available: false, prisma: null };
     }
     await prisma.$queryRaw`SELECT 1`;
-    return { available: true, prisma };
+    return { available: true, prisma, mongo: false };
   } catch (error) {
     return { available: false, prisma: null };
   }
@@ -48,14 +54,34 @@ export async function GET(request: Request) {
       const limit = searchParams.get("limit");
       const offset = searchParams.get("offset");
 
-      const dbUser = await dbCheck.prisma!.user.findUnique({
-        where: { clerkId: user.id },
-      });
+      if (dbCheck.mongo) {
+        const transactionsCol = await getCollection<any>("transactions");
+        const { searchParams } = new URL(request.url);
+        const startDate = searchParams.get("startDate");
+        const endDate = searchParams.get("endDate");
+        const category = searchParams.get("category");
+        const limit = searchParams.get("limit");
+        const offset = searchParams.get("offset");
+        const query: any = { clerkId: user.id };
+        if (startDate || endDate) {
+          query.date = {};
+          if (startDate) query.date.$gte = new Date(startDate);
+          if (endDate) query.date.$lte = new Date(endDate);
+        }
+        if (category) {
+          query.category = category;
+        }
+        const cursor = transactionsCol!.find(query).sort({ date: -1 });
+        if (offset) cursor.skip(parseInt(offset));
+        if (limit) cursor.limit(parseInt(limit));
+        const transactions = await cursor.toArray();
+        return NextResponse.json(transactions);
+      }
 
+      const dbUser = await dbCheck.prisma!.user.findUnique({ where: { clerkId: user.id } });
       if (!dbUser) {
         return NextResponse.json([]);
       }
-
       const where: any = { userId: dbUser.id };
       
       if (startDate || endDate) {
@@ -120,10 +146,103 @@ export async function POST(request: Request) {
         return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
       }
 
-      const dbUser = await getOrCreateUser(user);
+      if (dbCheck.mongo) {
+        const transactionsCol = await getCollection<any>("transactions");
+        const assetsCol = await getCollection<any>("assets");
+        const cardsCol = await getCollection<any>("creditCards");
+        const liabilitiesCol = await getCollection<any>("liabilities");
+        if (!transactionsCol) {
+          return NextResponse.json({ error: "Database unavailable" }, { status: 503 });
+        }
+        const doc = {
+          clerkId: user.id,
+          date: new Date(date),
+          amount: Number(amount),
+          description,
+          category,
+          account: account || null,
+          merchant: merchant || null,
+          status: status || "posted",
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
+        };
+        const txnRes = await transactionsCol.insertOne(doc);
 
+        const absAmount = Math.abs(Number(amount));
+        if (paymentSource?.id && paymentSource?.type && (assetsCol || cardsCol)) {
+          if (paymentSource.type === "asset" && assetsCol) {
+            const oid = toObjectId(paymentSource.id);
+            const change = category === "income" ? absAmount : -absAmount;
+            await assetsCol.updateOne(
+              oid ? { _id: oid, clerkId: user.id } : { _id: paymentSource.id as any, clerkId: user.id },
+              { $inc: { value: change }, $set: { updatedAt: new Date().toISOString() } }
+            );
+          } else if (paymentSource.type === "creditCard" && cardsCol) {
+            const oid = toObjectId(paymentSource.id);
+            const change = category === "spending" ? absAmount : -absAmount;
+            const cardDoc = await cardsCol.findOne(
+              oid ? { _id: oid, clerkId: user.id } : { _id: paymentSource.id as any, clerkId: user.id }
+            );
+            if (cardDoc) {
+              await cardsCol.updateOne(
+                { _id: cardDoc._id },
+                { $inc: { balance: change }, $set: { updatedAt: new Date().toISOString() } }
+              );
+              if (liabilitiesCol) {
+                const liabilityName1 = `${(cardDoc.brand || "").toString()} ${(cardDoc.last4 || "").toString()}`;
+                const liabilityName2 = `${(cardDoc.brand || "").toString().toUpperCase()} ${(cardDoc.last4 || "").toString()}`;
+                const liability = await liabilitiesCol.findOne({
+                  clerkId: user.id,
+                  $or: [{ name: liabilityName1 }, { name: liabilityName2 }, { name: cardDoc.name || "" }],
+                });
+                if (liability) {
+                  await liabilitiesCol.updateOne(
+                    { _id: liability._id },
+                    { $inc: { balance: change }, $set: { updatedAt: new Date().toISOString() } }
+                  );
+                } else {
+                  await liabilitiesCol.insertOne({
+                    clerkId: user.id,
+                    name: liabilityName2,
+                    type: "credit",
+                    balance: Number(cardDoc.balance || 0) + change,
+                    apr: Number(cardDoc.apr || 0),
+                    createdAt: new Date().toISOString(),
+                    updatedAt: new Date().toISOString(),
+                  });
+                }
+              }
+            }
+          }
+        } else if (account && assetsCol) {
+          const asset = await assetsCol.findOne({ clerkId: user.id, name: account });
+          if (asset) {
+            const change = category === "income" ? absAmount : -absAmount;
+            await assetsCol.updateOne(
+              { _id: asset._id },
+              { $inc: { value: change }, $set: { updatedAt: new Date().toISOString() } }
+            );
+          } else if (cardsCol) {
+            const cards = await cardsCol.find({ clerkId: user.id }).toArray();
+            const matchedCard = cards.find(
+              (c: any) => c.name === account || `${String(c.brand).toUpperCase()} ${String(c.last4)}` === account
+            );
+            if (matchedCard) {
+              const change = category === "spending" ? absAmount : -absAmount;
+              await cardsCol.updateOne(
+                { _id: matchedCard._id },
+                { $inc: { balance: change }, $set: { updatedAt: new Date().toISOString() } }
+              );
+            }
+          }
+        }
+
+        const transaction = await transactionsCol.findOne({ _id: txnRes.insertedId });
+        return NextResponse.json(transaction);
+      }
+
+      const dbUser = await getOrCreateUser(user);
       if (!dbUser) {
-        // Return demo response if user not found
         return NextResponse.json({
           id: id || `txn-${Date.now()}`,
           date: new Date(date).toISOString(),

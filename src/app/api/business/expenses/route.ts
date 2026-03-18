@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { currentUser } from "@clerk/nextjs/server";
 import prisma from "@/lib/db";
+import { getCollection, isMongoAvailable } from "@/lib/mongo";
 
 export const dynamic = "force-dynamic";
 
@@ -17,38 +18,45 @@ export async function GET(request: Request) {
     const endDate = searchParams.get("endDate");
     const category = searchParams.get("category");
 
-    const dbUser = await prisma.user.findUnique({
-      where: { clerkId: user.id },
-    });
-
-    if (!dbUser) {
-      return NextResponse.json(
-        { error: "User profile not found" },
-        { status: 404 }
-      );
+    if (isMongoAvailable()) {
+      const txCol = await getCollection<any>("transactions");
+      if (!txCol) {
+        return NextResponse.json({ error: "Database unavailable" }, { status: 503 });
+      }
+      const query: any = { clerkId: user.id, category: "other" };
+      if (startDate || endDate) {
+        query.date = {};
+        if (startDate) query.date.$gte = new Date(startDate);
+        if (endDate) query.date.$lte = new Date(endDate);
+      }
+      if (category) {
+        query.description = { $regex: category, $options: "i" };
+      }
+      const expenses = await txCol.find(query).sort({ date: -1 }).toArray();
+      const total = expenses.reduce((sum: number, exp: any) => sum + Math.abs(Number(exp.amount || 0)), 0);
+      const taxDeductible = expenses
+        .filter((exp: any) => String(exp.description || "").toLowerCase().includes("business") || String(exp.description || "").toLowerCase().includes("office"))
+        .reduce((sum: number, exp: any) => sum + Math.abs(Number(exp.amount || 0)), 0);
+      return NextResponse.json({
+        expenses,
+        summary: { total, taxDeductible, count: expenses.length },
+      });
     }
 
-    // Using Transaction model with category filter for business expenses
-    // In production, use BusinessExpense model from schema extensions
-    const where: any = {
-      userId: dbUser.id,
-      category: "other", // Business expenses can be marked
-    };
-
+    const dbUser = await prisma.user.findUnique({ where: { clerkId: user.id } });
+    if (!dbUser) {
+      return NextResponse.json({ error: "User profile not found" }, { status: 404 });
+    }
+    const where: any = { userId: dbUser.id, category: "other" };
     if (startDate || endDate) {
       where.date = {};
       if (startDate) where.date.gte = new Date(startDate);
       if (endDate) where.date.lte = new Date(endDate);
     }
-
     if (category) {
       where.description = { contains: category };
     }
-
-    const expenses = await prisma.transaction.findMany({
-      where,
-      orderBy: { date: "desc" },
-    });
+    const expenses = await prisma.transaction.findMany({ where, orderBy: { date: "desc" } });
 
     const total = expenses.reduce((sum, exp) => sum + Math.abs(Number(exp.amount)), 0);
     const taxDeductible = expenses
@@ -90,23 +98,41 @@ export async function POST(request: Request) {
       );
     }
 
-    const dbUser = await prisma.user.findUnique({
-      where: { clerkId: user.id },
-    });
-
-    if (!dbUser) {
-      return NextResponse.json(
-        { error: "User profile not found" },
-        { status: 404 }
-      );
+    if (isMongoAvailable()) {
+      try {
+        const txCol = await getCollection<any>("transactions");
+        if (!txCol) {
+          throw new Error("Mongo collection unavailable");
+        }
+        const doc = {
+          clerkId: user.id,
+          description: `[BUSINESS] ${description}${vendor ? ` - ${vendor}` : ""}`,
+          amount: -Math.abs(Number(amount)),
+          category: "other",
+          date: date ? new Date(date) : new Date(),
+          account: category || "Business",
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
+          isTaxDeductible: isTaxDeductible || false,
+          vendor: vendor || null,
+        };
+        const res = await txCol.insertOne(doc);
+        const expense = await txCol.findOne({ _id: res.insertedId });
+        return NextResponse.json(expense);
+      } catch {
+        // fallback to Prisma below
+      }
     }
 
-    // Create as transaction with business marker
+    const dbUser = await prisma.user.findUnique({ where: { clerkId: user.id } });
+    if (!dbUser) {
+      return NextResponse.json({ error: "User profile not found" }, { status: 404 });
+    }
     const expense = await prisma.transaction.create({
       data: {
         userId: dbUser.id,
         description: `[BUSINESS] ${description}${vendor ? ` - ${vendor}` : ""}`,
-        amount: -Math.abs(Number(amount)), // Negative for expense
+        amount: -Math.abs(Number(amount)),
         category: "other",
         date: date ? new Date(date) : new Date(),
         account: category || "Business",

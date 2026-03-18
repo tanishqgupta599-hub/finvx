@@ -1,30 +1,60 @@
 import { NextResponse } from "next/server";
 import { currentUser } from "@clerk/nextjs/server";
 import prisma from "@/lib/db";
+import { getCollection, isMongoAvailable } from "@/lib/mongo";
 
 export async function POST(req: Request) {
   const user = await currentUser();
   if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   try {
-    const dbUser = await prisma.user.findUnique({
-      where: { clerkId: user.id },
-    });
-
-    if (!dbUser) {
-      return NextResponse.json({ error: "User not found" }, { status: 404 });
-    }
-
     const body = await req.json();
     const { totalPotentialSavings, steps } = body;
 
-    // Upsert the plan
+    if (isMongoAvailable()) {
+      const col = await getCollection<any>("taxActionPlans");
+      if (!col) {
+        return NextResponse.json({ error: "Database unavailable" }, { status: 503 });
+      }
+      await col.updateOne(
+        { clerkId: user.id },
+        {
+          $set: {
+            clerkId: user.id,
+            totalPotentialSavings,
+            generatedAt: new Date().toISOString(),
+            steps: Array.isArray(steps)
+              ? steps.map((s: any) => ({
+                  title: s.title,
+                  description: s.description,
+                  potentialSaving: s.potentialSaving,
+                  type: s.type,
+                  impactLevel: s.impactLevel,
+                  actionUrl: s.actionUrl,
+                  isCompleted: !!s.isCompleted,
+                  status: s.status || "pending",
+                  deadline: s.deadline || null,
+                }))
+              : [],
+            updatedAt: new Date().toISOString(),
+          },
+          $setOnInsert: { createdAt: new Date().toISOString() },
+        },
+        { upsert: true }
+      );
+      const plan = await col.findOne({ clerkId: user.id });
+      return NextResponse.json(plan);
+    }
+
+    const dbUser = await prisma.user.findUnique({ where: { clerkId: user.id } });
+    if (!dbUser) {
+      return NextResponse.json({ error: "User not found" }, { status: 404 });
+    }
     const plan = await prisma.taxActionPlan.upsert({
       where: { userId: dbUser.id },
       update: {
         totalPotentialSavings,
         generatedAt: new Date(),
-        // Delete existing steps and recreate them is easiest for full update
         steps: {
           deleteMany: {},
           create: steps.map((s: any) => ({
@@ -36,9 +66,9 @@ export async function POST(req: Request) {
             actionUrl: s.actionUrl,
             isCompleted: s.isCompleted || false,
             status: s.status || "pending",
-            deadline: s.deadline
-          }))
-        }
+            deadline: s.deadline,
+          })),
+        },
       },
       create: {
         userId: dbUser.id,
@@ -53,11 +83,11 @@ export async function POST(req: Request) {
             actionUrl: s.actionUrl,
             isCompleted: s.isCompleted || false,
             status: s.status || "pending",
-            deadline: s.deadline
-          }))
-        }
+            deadline: s.deadline,
+          })),
+        },
       },
-      include: { steps: true }
+      include: { steps: true },
     });
 
     return NextResponse.json(plan);
@@ -72,18 +102,20 @@ export async function GET() {
    if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
    try {
-    const dbUser = await prisma.user.findUnique({
-        where: { clerkId: user.id },
-    });
-
-    if (!dbUser) {
-        return NextResponse.json({ error: "User not found" }, { status: 404 });
+    if (isMongoAvailable()) {
+      const col = await getCollection<any>("taxActionPlans");
+      if (!col) {
+        return NextResponse.json({ error: "Database unavailable" }, { status: 503 });
+      }
+      const plan = await col.findOne({ clerkId: user.id });
+      return NextResponse.json(plan || null);
     }
 
-    const plan = await prisma.taxActionPlan.findUnique({
-        where: { userId: dbUser.id },
-        include: { steps: true }
-    });
+    const dbUser = await prisma.user.findUnique({ where: { clerkId: user.id } });
+    if (!dbUser) {
+      return NextResponse.json({ error: "User not found" }, { status: 404 });
+    }
+    const plan = await prisma.taxActionPlan.findUnique({ where: { userId: dbUser.id }, include: { steps: true } });
 
     return NextResponse.json(plan || null);
    } catch (error) {

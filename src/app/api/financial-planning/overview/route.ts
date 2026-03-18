@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { currentUser } from "@clerk/nextjs/server";
 import prisma from "@/lib/db";
+import { getCollection, isMongoAvailable } from "@/lib/mongo";
 
 export const dynamic = "force-dynamic";
 
@@ -12,37 +13,107 @@ export async function GET(request: Request) {
   }
 
   try {
-    const dbUser = await prisma.user.findUnique({
-      where: { clerkId: user.id },
-    });
-
-    if (!dbUser) {
-      return NextResponse.json(
-        { error: "User profile not found" },
-        { status: 404 }
-      );
+    if (isMongoAvailable()) {
+      const assetsCol = await getCollection<any>("assets");
+      const liabilitiesCol = await getCollection<any>("liabilities");
+      const loansCol = await getCollection<any>("loans");
+      const cardsCol = await getCollection<any>("creditCards");
+      const txCol = await getCollection<any>("transactions");
+      const goalsCol = await getCollection<any>("goals");
+      const subsCol = await getCollection<any>("subscriptions");
+      const incomeCol = await getCollection<any>("incomeStreams");
+      const assets = assetsCol ? await assetsCol.find({ clerkId: user.id }).toArray() : [];
+      const liabilities = liabilitiesCol ? await liabilitiesCol.find({ clerkId: user.id }).toArray() : [];
+      const loans = loansCol ? await loansCol.find({ clerkId: user.id }).toArray() : [];
+      const creditCards = cardsCol ? await cardsCol.find({ clerkId: user.id }).toArray() : [];
+      const transactions = txCol ? await txCol.find({ clerkId: user.id }).sort({ date: -1 }).limit(100).toArray() : [];
+      const goals = goalsCol ? await goalsCol.find({ clerkId: user.id }).toArray() : [];
+      const subscriptions = subsCol ? await subsCol.find({ clerkId: user.id }).toArray() : [];
+      const incomeStreams = incomeCol ? await incomeCol.find({ clerkId: user.id }).toArray() : [];
+      const totalAssets = assets.reduce((sum: number, asset: any) => sum + Number(asset.value || 0), 0);
+      const totalLiabilities = liabilities.reduce((sum: number, liab: any) => sum + Number(liab.balance || 0), 0);
+      const totalLoanBalance = loans.reduce((sum: number, loan: any) => sum + Number(loan.balance || 0), 0);
+      const totalCreditCardDebt = creditCards.reduce((sum: number, card: any) => sum + Number(card.balance || 0), 0);
+      const totalDebt = totalLiabilities + totalLoanBalance + totalCreditCardDebt;
+      const netWorth = totalAssets - totalDebt;
+      const monthlyIncome = incomeStreams.reduce((sum: number, stream: any) => {
+        let monthly = Number(stream.amount || 0);
+        if (stream.frequency === "yearly") monthly = monthly / 12;
+        else if (stream.frequency === "weekly") monthly = monthly * 4.33;
+        return sum + monthly;
+      }, 0);
+      const thirtyDaysAgo = new Date();
+      thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+      const recentTransactions = transactions.filter((tx: any) => new Date(tx.date) >= thirtyDaysAgo && tx.category === "spending");
+      const monthlyExpenses = recentTransactions.reduce((sum: number, tx: any) => sum + Math.abs(Number(tx.amount || 0)), 0);
+      const monthlySubscriptions = subscriptions.reduce((sum: number, sub: any) => {
+        let monthly = Number(sub.amount || 0);
+        if (sub.cadence === "yearly") monthly = monthly / 12;
+        else if (sub.cadence === "weekly") monthly = monthly * 4.33;
+        return sum + monthly;
+      }, 0);
+      const totalMonthlyExpenses = monthlyExpenses + monthlySubscriptions;
+      const monthlySavings = monthlyIncome - totalMonthlyExpenses;
+      const savingsRate = monthlyIncome > 0 ? (monthlySavings / monthlyIncome) * 100 : 0;
+      const goalsProgress = goals.map((goal: any) => ({
+        id: goal.id || goal._id,
+        title: goal.title,
+        progress: (Number(goal.currentAmount || 0) / Number(goal.targetAmount || 1)) * 100,
+        remaining: Number(goal.targetAmount || 0) - Number(goal.currentAmount || 0),
+        dueDate: goal.dueDate || null,
+        priority: goal.priority || "medium",
+      }));
+      const spendingByCategory: Record<string, number> = {};
+      recentTransactions.forEach((tx: any) => {
+        const category = tx.category;
+        spendingByCategory[category] = (spendingByCategory[category] || 0) + Math.abs(Number(tx.amount || 0));
+      });
+      const annualIncome = monthlyIncome * 12;
+      const debtToIncomeRatio = annualIncome > 0 ? (totalDebt / annualIncome) * 100 : 0;
+      const recommendedEmergencyFund = totalMonthlyExpenses * 6;
+      const currentEmergencyFund = assets.filter((a: any) => a.type === "cash").reduce((sum: number, asset: any) => sum + Number(asset.value || 0), 0);
+      const emergencyFundStatus = recommendedEmergencyFund > 0 ? (currentEmergencyFund / recommendedEmergencyFund) * 100 : 0;
+      return NextResponse.json({
+        netWorth: {
+          total: netWorth,
+          assets: totalAssets,
+          debt: totalDebt,
+          breakdown: { assets: totalAssets, liabilities: totalLiabilities, loans: totalLoanBalance, creditCards: totalCreditCardDebt },
+        },
+        cashFlow: {
+          monthlyIncome,
+          monthlyExpenses: totalMonthlyExpenses,
+          monthlySavings,
+          savingsRate: savingsRate.toFixed(2) + "%",
+          breakdown: { transactions: monthlyExpenses, subscriptions: monthlySubscriptions },
+        },
+        debt: {
+          total: totalDebt,
+          breakdown: { liabilities: totalLiabilities, loans: totalLoanBalance, creditCards: totalCreditCardDebt },
+          debtToIncomeRatio: debtToIncomeRatio.toFixed(2) + "%",
+        },
+        goals: { total: goals.length, progress: goalsProgress, onTrack: goalsProgress.filter((g) => g.progress >= 50).length },
+        emergencyFund: {
+          current: currentEmergencyFund,
+          recommended: recommendedEmergencyFund,
+          status: emergencyFundStatus.toFixed(2) + "%",
+          monthsCovered: totalMonthlyExpenses > 0 ? (currentEmergencyFund / totalMonthlyExpenses).toFixed(1) : "0",
+        },
+        spending: { byCategory: spendingByCategory, total: monthlyExpenses },
+        insights: generateInsights({ savingsRate, debtToIncomeRatio, emergencyFundStatus, goalsProgress, totalDebt }),
+      });
     }
 
-    // Fetch all financial data in parallel
-    const [
-      assets,
-      liabilities,
-      loans,
-      creditCards,
-      transactions,
-      goals,
-      subscriptions,
-      incomeStreams,
-    ] = await Promise.all([
+    const dbUser = await prisma.user.findUnique({ where: { clerkId: user.id } });
+    if (!dbUser) {
+      return NextResponse.json({ error: "User profile not found" }, { status: 404 });
+    }
+    const [assets, liabilities, loans, creditCards, transactions, goals, subscriptions, incomeStreams] = await Promise.all([
       prisma.asset.findMany({ where: { userId: dbUser.id } }),
       prisma.liability.findMany({ where: { userId: dbUser.id } }),
       prisma.loan.findMany({ where: { userId: dbUser.id } }),
       prisma.creditCard.findMany({ where: { userId: dbUser.id } }),
-      prisma.transaction.findMany({
-        where: { userId: dbUser.id },
-        take: 100,
-        orderBy: { date: "desc" },
-      }),
+      prisma.transaction.findMany({ where: { userId: dbUser.id }, take: 100, orderBy: { date: "desc" } }),
       prisma.goal.findMany({ where: { userId: dbUser.id } }),
       prisma.subscription.findMany({ where: { userId: dbUser.id } }),
       prisma.incomeStream.findMany({ where: { userId: dbUser.id } }),

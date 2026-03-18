@@ -188,8 +188,8 @@ export default function InvestmentsPage() {
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
-              {investments.map((inv) => (
-                <div key={inv.id} className="flex items-center justify-between rounded-lg border border-white/5 bg-white/5 p-3">
+              {investments.map((inv, i) => (
+                <div key={inv.id || `inv-${i}`} className="flex items-center justify-between rounded-lg border border-white/5 bg-white/5 p-3">
                   <div className="flex items-center gap-3">
                     <div className="flex h-10 w-10 items-center justify-center rounded bg-zinc-800">
                       {inv.type === "property" ? <Building className="h-5 w-5 text-zinc-400" /> : <Briefcase className="h-5 w-5 text-zinc-400" />}
