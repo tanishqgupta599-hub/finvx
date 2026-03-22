@@ -3,19 +3,20 @@ import { PrismaClient } from '@prisma/client'
 let prismaInstance: PrismaClient | null = null;
 
 const prismaClientSingleton = () => {
-  // Use MONGODB_URI if DATABASE_URL is missing, as the schema now supports MongoDB
-  const connectionString = process.env.DATABASE_URL || process.env.MONGODB_URI || process.env.POSTGRES_PRISMA_URL || process.env.POSTGRES_URL
+  // Ensure DATABASE_URL is set for Prisma, falling back to MONGODB_URI if needed
+  if (!process.env.DATABASE_URL && process.env.MONGODB_URI) {
+    process.env.DATABASE_URL = process.env.MONGODB_URI;
+  }
+
+  const connectionString = process.env.DATABASE_URL || process.env.POSTGRES_PRISMA_URL || process.env.POSTGRES_URL
 
   if (!connectionString) {
     return null;
   }
 
   try {
-    // In Prisma 7.x, MongoDB doesn't need a separate adapter like @prisma/adapter-pg
-    // The connection string is passed directly to the constructor for the datasource
-    return new PrismaClient({
-      datasourceUrl: connectionString
-    })
+    // Standard initialization - Prisma will read DATABASE_URL from the environment
+    return new PrismaClient();
   } catch (error) {
     console.warn("Database connection failed, running in demo mode:", error);
     return null;
