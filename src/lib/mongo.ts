@@ -1,4 +1,4 @@
-import { MongoClient, Db, Collection, ObjectId } from "mongodb";
+import { MongoClient, Db, Collection, ObjectId, Document } from "mongodb";
 
 let client: MongoClient | null = null;
 let db: Db | null = null;
@@ -28,7 +28,7 @@ export async function getMongoDb(): Promise<Db | null> {
   }
 }
 
-export async function getCollection<T>(name: string): Promise<Collection<T> | null> {
+export async function getCollection<T extends Document>(name: string): Promise<Collection<T> | null> {
   const database = await getMongoDb();
   if (!database) return null;
   return database.collection<T>(name);
