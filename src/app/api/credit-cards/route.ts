@@ -17,7 +17,7 @@ async function checkDatabaseAvailable() {
       return { available: false, prisma: null };
     }
     // Test connection
-    await prisma.$queryRaw`SELECT 1`;
+    await prisma.user.count();
     return { available: true, prisma, mongo: false };
   } catch (error) {
     return { available: false, prisma: null };

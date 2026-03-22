@@ -19,7 +19,7 @@ export async function GET() {
     }
 
     // Try a simple query
-    await prisma.$queryRaw`SELECT 1`;
+    await prisma.user.count();
     status.database = "connected";
     return NextResponse.json(status);
   } catch (error: any) {
