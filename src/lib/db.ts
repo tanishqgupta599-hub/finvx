@@ -4,7 +4,6 @@ let prismaInstance: PrismaClient | null = null;
 
 const prismaClientSingleton = () => {
   // Ensure DATABASE_URL is set for Prisma, falling back to MONGODB_URI if needed
-  // In Prisma 7.x, the URL must be in the environment if not in schema.prisma
   if (!process.env.DATABASE_URL && process.env.MONGODB_URI) {
     process.env.DATABASE_URL = process.env.MONGODB_URI;
   }
@@ -16,9 +15,15 @@ const prismaClientSingleton = () => {
   }
 
   try {
-    // Standard initialization - Prisma 7.x will read DATABASE_URL from the environment
-    // as configured in prisma.config.ts and schema.prisma
-    return new PrismaClient();
+    // Explicitly pass the connection string to the PrismaClient constructor
+    // This is the most robust way to ensure it initializes correctly in Vercel
+    return new PrismaClient({
+      datasources: {
+        db: {
+          url: connectionString
+        }
+      }
+    });
   } catch (error) {
     console.warn("Database connection failed, running in demo mode:", error);
     return null;
