@@ -11,12 +11,10 @@ const prismaClientSingleton = () => {
   }
 
   try {
+    // In Prisma 7.x, MongoDB doesn't need a separate adapter like @prisma/adapter-pg
+    // The connection string is passed directly to the constructor for the datasource
     return new PrismaClient({
-      datasources: {
-        db: {
-          url: connectionString
-        }
-      }
+      datasourceUrl: connectionString
     })
   } catch (error) {
     console.warn("Database connection failed, running in demo mode:", error);
