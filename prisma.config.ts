@@ -1,5 +1,3 @@
-// Prisma Config file (Currently disabled to resolve MongoDB compatibility issues with Prisma 7.x)
-/*
 import "dotenv/config";
 import { defineConfig } from "prisma/config";
 
@@ -9,8 +7,6 @@ export default defineConfig({
     path: "prisma/migrations",
   },
   datasource: {
-    url: process.env["DATABASE_URL"],
+    url: process.env["DATABASE_URL"] || process.env["MONGODB_URI"],
   },
 });
-*/
-export default {};
