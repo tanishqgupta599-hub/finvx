@@ -3,20 +3,23 @@ import { PrismaClient } from '@prisma/client'
 let prismaInstance: PrismaClient | null = null;
 
 const prismaClientSingleton = () => {
-  // Ensure DATABASE_URL is set for Prisma, falling back to MONGODB_URI if needed
-  if (!process.env.DATABASE_URL && process.env.MONGODB_URI) {
-    process.env.DATABASE_URL = process.env.MONGODB_URI;
-  }
+  // Prioritize MongoDB connections to avoid conflicts with leftover Postgres/Neon variables
+  const mongoUrl = process.env.MONGODB_URI || (process.env.DATABASE_URL?.startsWith('mongodb') ? process.env.DATABASE_URL : null);
+  const postgresUrl = process.env.POSTGRES_PRISMA_URL || process.env.POSTGRES_URL || (process.env.DATABASE_URL?.startsWith('postgres') ? process.env.DATABASE_URL : null);
 
-  const connectionString = process.env.DATABASE_URL || process.env.POSTGRES_PRISMA_URL || process.env.POSTGRES_URL
+  // Since we are using the MongoDB provider in schema.prisma, we MUST use a mongodb connection string
+  const connectionString = mongoUrl || postgresUrl;
 
   if (!connectionString) {
+    console.warn("No database connection string found in environment variables.");
     return null;
   }
 
+  // Log which connection type we are using (safe version without credentials)
+  const isMongo = connectionString.startsWith('mongodb');
+  console.log(`Initializing Prisma with ${isMongo ? 'MongoDB' : 'PostgreSQL'} connection string...`);
+
   try {
-    // Explicitly pass the connection string to the PrismaClient constructor
-    // This is the most robust way to ensure it initializes correctly in Vercel
     return new PrismaClient({
       datasources: {
         db: {
