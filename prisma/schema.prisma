@@ -160,7 +160,7 @@ enum ActionStatus {
 // Models
 
 model User {
-  id                    String            @id @default(cuid())
+  id                    String            @id @default(cuid()) @map("_id")
   clerkId               String            @unique // Link to Clerk Auth
   email                 String            @unique
   name                  String?
@@ -202,7 +202,8 @@ model User {
   emergencyContacts EmergencyContact[]
   vaultDocuments  VaultDocument[]
   friends         Friend[]
-  circles         ExpenseCircle[]   @relation("UserCircles")
+  circleIDs       String[]
+  circles         ExpenseCircle[]   @relation("UserCircles", fields: [circleIDs], references: [id])
   ownedCircles    ExpenseCircle[]   @relation("CircleOwner")
   
   taxProfile      TaxProfile?
@@ -210,7 +211,7 @@ model User {
 }
 
 model TaxProfile {
-  id              String          @id @default(cuid())
+  id              String          @id @default(cuid()) @map("_id")
   userId          String          @unique
   user            User            @relation(fields: [userId], references: [id], onDelete: Cascade)
   jurisdiction    TaxJurisdiction @default(IN)
@@ -224,7 +225,7 @@ model TaxProfile {
 }
 
 model IncomeStream {
-  id             String      @id @default(cuid())
+  id             String      @id @default(cuid()) @map("_id")
   userId         String
   user           User        @relation(fields: [userId], references: [id], onDelete: Cascade)
   name           String
@@ -237,7 +238,7 @@ model IncomeStream {
 }
 
 model Asset {
-  id          String    @id @default(cuid())
+  id          String    @id @default(cuid()) @map("_id")
   userId      String
   user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
   name        String
@@ -249,7 +250,7 @@ model Asset {
 }
 
 model Liability {
-  id        String        @id @default(cuid())
+  id        String        @id @default(cuid()) @map("_id")
   userId    String
   user      User          @relation(fields: [userId], references: [id], onDelete: Cascade)
   name      String
@@ -261,7 +262,7 @@ model Liability {
 }
 
 model Loan {
-  id             String   @id @default(cuid())
+  id             String   @id @default(cuid()) @map("_id")
   userId         String
   user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   name           String
@@ -274,7 +275,7 @@ model Loan {
 }
 
 model Transaction {
-  id          String              @id @default(cuid())
+  id          String              @id @default(cuid()) @map("_id")
   userId      String
   user        User                @relation(fields: [userId], references: [id], onDelete: Cascade)
   date        DateTime
@@ -287,7 +288,7 @@ model Transaction {
 }
 
 model Subscription {
-  id             String              @id @default(cuid())
+  id             String              @id @default(cuid()) @map("_id")
   userId         String
   user           User                @relation(fields: [userId], references: [id], onDelete: Cascade)
   name           String
@@ -299,7 +300,7 @@ model Subscription {
 }
 
 model CreditCard {
-  id            String    @id @default(cuid())
+  id            String    @id @default(cuid()) @map("_id")
   userId        String
   user          User      @relation(fields: [userId], references: [id], onDelete: Cascade)
   name          String?
@@ -319,7 +320,7 @@ model CreditCard {
 }
 
 model InsurancePolicy {
-  id             String     @id @default(cuid())
+  id             String     @id @default(cuid()) @map("_id")
   userId         String
   user           User       @relation(fields: [userId], references: [id], onDelete: Cascade)
   type           PolicyType
@@ -332,7 +333,7 @@ model InsurancePolicy {
 }
 
 model Goal {
-  id            String       @id @default(cuid())
+  id            String       @id @default(cuid()) @map("_id")
   userId        String
   user          User         @relation(fields: [userId], references: [id], onDelete: Cascade)
   title         String
@@ -346,7 +347,7 @@ model Goal {
 }
 
 model CalendarEvent {
-  id          String            @id @default(cuid())
+  id          String            @id @default(cuid()) @map("_id")
   userId      String
   user        User              @relation(fields: [userId], references: [id], onDelete: Cascade)
   date        DateTime
@@ -359,7 +360,7 @@ model CalendarEvent {
 }
 
 model ScamCheck {
-  id          String        @id @default(cuid())
+  id          String        @id @default(cuid()) @map("_id")
   userId      String
   user        User          @relation(fields: [userId], references: [id], onDelete: Cascade)
   title       String
@@ -373,7 +374,7 @@ model ScamCheck {
 }
 
 model AutopsyReport {
-  id        String   @id @default(cuid())
+  id        String   @id @default(cuid()) @map("_id")
   userId    String
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   title     String
@@ -385,7 +386,7 @@ model AutopsyReport {
 }
 
 model TaxActionPlan {
-  id                    String          @id @default(cuid())
+  id                    String          @id @default(cuid()) @map("_id")
   userId                String          @unique
   user                  User            @relation(fields: [userId], references: [id], onDelete: Cascade)
   totalPotentialSavings Float
@@ -395,7 +396,7 @@ model TaxActionPlan {
 }
 
 model TaxActionStep {
-  id              String        @id @default(cuid())
+  id              String        @id @default(cuid()) @map("_id")
   planId          String
   plan            TaxActionPlan @relation(fields: [planId], references: [id], onDelete: Cascade)
   title           String
@@ -410,7 +411,7 @@ model TaxActionStep {
 }
 
 model ActionItem {
-  id          String       @id @default(cuid())
+  id          String       @id @default(cuid()) @map("_id")
   userId      String
   user        User         @relation(fields: [userId], references: [id], onDelete: Cascade)
   title       String
@@ -427,7 +428,7 @@ model ActionItem {
 }
 
 model ActionStep {
-  id           String     @id @default(cuid())
+  id           String     @id @default(cuid()) @map("_id")
   actionItemId String
   actionItem   ActionItem @relation(fields: [actionItemId], references: [id], onDelete: Cascade)
   label        String
@@ -435,7 +436,7 @@ model ActionStep {
 }
 
 model EmergencyContact {
-  id           String  @id @default(cuid())
+  id           String  @id @default(cuid()) @map("_id")
   userId       String
   user         User    @relation(fields: [userId], references: [id], onDelete: Cascade)
   name         String
@@ -444,7 +445,7 @@ model EmergencyContact {
 }
 
 model VaultDocument {
-  id        String   @id @default(cuid())
+  id        String   @id @default(cuid()) @map("_id")
   userId    String
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   name      String
@@ -455,7 +456,7 @@ model VaultDocument {
 }
 
 model Friend {
-  id           String   @id @default(cuid())
+  id           String   @id @default(cuid()) @map("_id")
   userId       String
   user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   name         String
@@ -469,7 +470,7 @@ model Friend {
 }
 
 model ExpenseCircle {
-  id          String   @id @default(cuid())
+  id          String   @id @default(cuid()) @map("_id")
   ownerId     String
   owner       User     @relation("CircleOwner", fields: [ownerId], references: [id])
   name        String
@@ -478,12 +479,13 @@ model ExpenseCircle {
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
-  members User[]          @relation("UserCircles")
+  memberIDs String[]
+  members   User[]          @relation("UserCircles", fields: [memberIDs], references: [id])
   expenses SharedExpense[]
 }
 
 model SharedExpense {
-  id          String        @id @default(cuid())
+  id          String        @id @default(cuid()) @map("_id")
   circleId    String
   circle      ExpenseCircle @relation(fields: [circleId], references: [id], onDelete: Cascade)
   paidById    String // ID of the user (or friend) who paid
