@@ -36,9 +36,9 @@ export async function GET(
         ? await expensesCol.find({ circleId: (circleDoc._id as any).toString() }).sort({ date: -1 }).toArray()
         : [];
       const members = (circleDoc.memberClerkIds || []).map((cid: string) => ({ id: cid, name: null, email: null }));
-      const owner = { id: circleDoc.ownerClerkId, name: null, email: null };
+      const owner = { id: circleDoc.ownerClerkId as string, name: null, email: null };
       const balances: Record<string, number> = {};
-      members.forEach((m) => (balances[m.id] = 0));
+      members.forEach((m: { id: string }) => (balances[m.id] = 0));
       balances[owner.id] = 0;
       expenses.forEach((expense: any) => {
         const paidBy = String(expense.paidById);
