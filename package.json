@@ -13,7 +13,6 @@
     "@clerk/nextjs": "^6.36.8",
     "@clerk/themes": "^2.4.48",
     "@google/generative-ai": "^0.24.1",
-    "@prisma/adapter-pg": "^7.2.0",
     "@prisma/client": "^7.2.0",
     "@radix-ui/react-dialog": "^1.1.15",
     "@radix-ui/react-switch": "^1.2.6",
@@ -25,7 +24,6 @@
     "mongodb": "^7.1.0",
     "next": "16.1.2",
     "next-themes": "^0.4.6",
-    "pg": "^8.17.2",
     "react": "19.2.3",
     "react-dom": "19.2.3",
     "recharts": "^3.6.0",
@@ -36,7 +34,6 @@
   "devDependencies": {
     "@tailwindcss/postcss": "^4",
     "@types/node": "^20",
-    "@types/pg": "^8.16.0",
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "dotenv": "^17.2.4",

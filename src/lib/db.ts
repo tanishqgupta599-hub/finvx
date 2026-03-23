@@ -3,27 +3,24 @@ import { PrismaClient } from '@prisma/client'
 let prismaInstance: PrismaClient | null = null;
 
 const prismaClientSingleton = () => {
-  // Prioritize MongoDB connections to avoid conflicts with leftover Postgres/Neon variables
-  const mongoUrl = process.env.MONGODB_URI || (process.env.DATABASE_URL?.startsWith('mongodb') ? process.env.DATABASE_URL : null);
-  const postgresUrl = process.env.POSTGRES_PRISMA_URL || process.env.POSTGRES_URL || (process.env.DATABASE_URL?.startsWith('postgres') ? process.env.DATABASE_URL : null);
-
-  // Since we are using the MongoDB provider in schema.prisma, we MUST use a mongodb connection string
-  const connectionString = mongoUrl || postgresUrl;
+  // Use MONGODB_URI directly or DATABASE_URL if it's a MongoDB string
+  // This avoids accidental initialization with Postgres/Neon variables that may still be in the environment
+  const connectionString = (process.env.MONGODB_URI || "").startsWith("mongodb") 
+    ? process.env.MONGODB_URI 
+    : (process.env.DATABASE_URL || "").startsWith("mongodb") 
+      ? process.env.DATABASE_URL 
+      : null;
 
   if (!connectionString) {
-    console.warn("No database connection string found in environment variables.");
+    console.warn("No valid MongoDB connection string found in environment variables. Running in demo mode.");
     return null;
   }
 
-  // Log which connection type we are using (safe version without credentials)
-  const isMongo = connectionString.startsWith('mongodb');
-  console.log(`Initializing Prisma with ${isMongo ? 'MongoDB' : 'PostgreSQL'} connection string...`);
+  console.log("Initializing Prisma Client with MongoDB connection...");
 
   try {
-    // Ensure DATABASE_URL is set globally for this process so Prisma picks it up
-    process.env.DATABASE_URL = connectionString;
-    
     // Standard initialization - Prisma will read DATABASE_URL from the environment
+    process.env.DATABASE_URL = connectionString;
     return new PrismaClient();
   } catch (error) {
     console.warn("Database connection failed, running in demo mode:", error);
