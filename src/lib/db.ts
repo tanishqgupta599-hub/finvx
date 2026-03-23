@@ -20,14 +20,11 @@ const prismaClientSingleton = () => {
   console.log(`Initializing Prisma with ${isMongo ? 'MongoDB' : 'PostgreSQL'} connection string...`);
 
   try {
-    // Standard initialization - Prisma 7.x uses 'datasources' for direct URL override
-    return new PrismaClient({
-      datasources: {
-        db: {
-          url: connectionString
-        }
-      }
-    });
+    // Ensure DATABASE_URL is set globally for this process so Prisma picks it up
+    process.env.DATABASE_URL = connectionString;
+    
+    // Standard initialization - Prisma will read DATABASE_URL from the environment
+    return new PrismaClient();
   } catch (error) {
     console.warn("Database connection failed, running in demo mode:", error);
     return null;
