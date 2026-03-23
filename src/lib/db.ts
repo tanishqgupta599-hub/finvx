@@ -20,12 +20,9 @@ const prismaClientSingleton = () => {
   console.log(`Initializing Prisma with ${isMongo ? 'MongoDB' : 'PostgreSQL'} connection string...`);
 
   try {
+    // Standard initialization - Prisma 7.x reads from the constructor for datasourceUrl
     return new PrismaClient({
-      datasources: {
-        db: {
-          url: connectionString
-        }
-      }
+      datasourceUrl: connectionString
     });
   } catch (error) {
     console.warn("Database connection failed, running in demo mode:", error);
